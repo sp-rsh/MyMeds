@@ -20,6 +20,5 @@ def setAngle(angle):
     pwm.ChangeDutyCycle(0);
 def dispense(dispenserID):
     setAngle(140);
-    sleep(1);
     setAngle(0);
     pass;
