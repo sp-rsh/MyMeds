@@ -50,6 +50,41 @@ const router = createRouter({
       name: 'admin-users',
       component: () => import('../views/AdminUsers.vue'),
     },
+    {
+  path: '/admin',
+  name: 'admin-dashboard',
+  component: () => import('../views/AdminDashboard.vue'),
+    },
+
+    {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: () => import('../views/AdminUsers.vue'),
+    },
+
+    {
+      path: '/admin/doctors',
+      name: 'admin-doctors',
+      component: () => import('../views/AdminDoctors.vue'),
+    },
+
+    {
+      path: '/admin/patients',
+      name: 'admin-patients',
+      component: () => import('../views/AdminPatients.vue'),
+    },
+
+    {
+      path: '/admin/security',
+      name: 'admin-security',
+      component: () => import('../views/AdminSecurityLogs.vue'),
+    },
+
+    {
+      path: '/admin/settings',
+      name: 'admin-settings',
+      component: () => import('../views/AdminSettings.vue'),
+    },
   ],
 })
 
