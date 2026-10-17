@@ -4,10 +4,15 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
 
   routes: [
+    // Default
     {
       path: '/',
       redirect: '/patient',
     },
+
+    // =========================
+    // PATIENT PORTAL
+    // =========================
     {
       path: '/patient',
       name: 'patient-dashboard',
@@ -32,6 +37,18 @@ const router = createRouter({
       path: '/patient/medications/:id',
       name: 'patient-medication-details',
       component: () => import('../views/PatientMedicationDetails.vue'),
+    },
+
+    {
+      path: '/admin',
+      name: 'admin-dashboard',
+      component: () => import('../views/AdminDashboard.vue'),
+    },
+
+    {
+      path: '/admin/users',
+      name: 'admin-users',
+      component: () => import('../views/AdminUsers.vue'),
     },
   ],
 })
