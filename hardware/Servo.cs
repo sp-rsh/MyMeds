@@ -13,7 +13,6 @@ public class Servo(int pin)
     public void SetAngle(int angle)
     {
         pwm.DutyCycle = angle/1800f + .02;
-        Console.WriteLine("Set DutyCycle to: " + pwm.DutyCycle);
         pwm.Start();
     }
     public void Disable()
