@@ -1,12 +1,35 @@
 const API_BASE = '/api'
 
+let authHeader = null
+
+export async function login(username, password) {
+  const encodedCredentials = btoa(`${username}:${password}`)
+
+  const response = await fetch(`${API_BASE}/home`, {
+    headers: {
+      Authorization: `Basic ${encodedCredentials}`,
+    },
+  })
+
+  if (!response.ok) {
+    throw new Error('Login failed')
+  }
+
+  authHeader = `Basic ${encodedCredentials}`
+
+  return response.text()
+}
+
 async function request(url, options = {}) {
   const response = await fetch(`${API_BASE}${url}`, {
+    ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(authHeader && {
+        Authorization: authHeader,
+      }),
       ...options.headers,
     },
-    ...options,
   })
 
   if (!response.ok) {
@@ -20,9 +43,6 @@ async function request(url, options = {}) {
   return response.json()
 }
 
-
-// Doctor
-
 export function getCurrentDoctor() {
   return request('/doctor/me')
 }
@@ -31,9 +51,6 @@ export function getDoctorDashboard() {
   return request('/doctor/dashboard')
 }
 
-
-// Patients
-
 export function getDoctorPatients() {
   return request('/doctor/patients')
 }
@@ -41,9 +58,6 @@ export function getDoctorPatients() {
 export function getPatient(patientId) {
   return request(`/doctor/patients/${patientId}`)
 }
-
-
-// Medications
 
 export function getMedication(patientId, medicationId) {
   return request(
@@ -73,9 +87,6 @@ export function removeMedication(patientId, medicationId) {
     }
   )
 }
-
-
-// History
 
 export function getMedicationHistory() {
   return request('/doctor/medication-history')
