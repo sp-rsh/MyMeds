@@ -1,22 +1,24 @@
-﻿
-using CSP_Hardware;
+﻿using CSP_Hardware;
 
 class Program
 {
-    readonly int[] servoPins = [14];
     readonly Fingerprint fpSensor;
     readonly Servo[] servos;
+    readonly Config CONFIG;
+    readonly WebAPI API;
     bool hasNextEvent = false;
     DispenseEvent nextEvent;
     DateTime lastServerUpdate;
     Program()
     {
-        fpSensor = new("/dev/ttyAMA2");
-        servos = new Servo[servoPins.Length];
-        for (int i = 0; i < servoPins.Length; i++)
+        CONFIG = new(Path.Combine(AppContext.BaseDirectory, "config.xml"));
+        API = new(CONFIG);
+        fpSensor = new(CONFIG.FINGERPRINT_PORT);
+        servos = new Servo[CONFIG.SERVO_PINS.Length];
+        for (int i = 0; i < CONFIG.SERVO_PINS.Length; i++)
         {
-            servos[i] = new(servoPins[i]);
-            servos[i].SetAngle(0);
+            servos[i] = new(CONFIG.SERVO_PINS[i]);
+            servos[i].SetAngle(CONFIG.SERVO_LOCKEDANGLE);
         }
         Thread.Sleep(1000);
         for (int i = 0; i < servos.Length; i++)
@@ -36,7 +38,7 @@ class Program
         }
         if(nextEvent.hasDispensed)
         {
-            if(WebAPI.PostDispenseEvent(nextEvent))
+            if(API.PostDispenseEvent(nextEvent))
                 hasNextEvent = false;
             return;
         }
@@ -55,7 +57,7 @@ class Program
     }
     void GetNextEvent()
     {
-        DispenseEvent? res = WebAPI.GetNextDispenseEvent();
+        DispenseEvent? res = API.GetNextDispenseEvent();
         hasNextEvent = res != null;
         if(res == null)
             return;
@@ -84,7 +86,7 @@ class Program
     }
     void NoDispenseWithinTime()
     {
-        if(WebAPI.PostDispenseEvent(nextEvent))
+        if(API.PostDispenseEvent(nextEvent))
             hasNextEvent = false;
     }
     void DispenseTowers(bool[] dispenseTower)
@@ -95,13 +97,13 @@ class Program
         {
             towers += $"{dispenseTower[i]} | ";
             if(dispenseTower[i])
-                servos[i].SetAngle(180);
+                servos[i].SetAngle(CONFIG.SERVO_RETRACTANGLE);
         }
         Console.WriteLine($"{nameof(Program)}.{nameof(DispenseTowers)}: {towers[..^3]}");
         Thread.Sleep(1000);
         for(int i = 0; i < length; i++)
             if(dispenseTower[i])
-                servos[i].SetAngle(0);
+                servos[i].SetAngle(CONFIG.SERVO_LOCKEDANGLE);
         Thread.Sleep(1000);
         for (int i = 0; i < length; i++)
             if(dispenseTower[i])
