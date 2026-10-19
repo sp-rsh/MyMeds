@@ -1,7 +1,7 @@
 <template>
   <section>
     <RouterLink
-      :to="`/patients/${route.params.patientId}`"
+      :to="`/doctor/patients/${route.params.patientId}`"
       class="back-link"
     >
       ← Back to Patient Details
@@ -100,7 +100,7 @@
             </button>
 
             <RouterLink
-              :to="`/patients/${route.params.patientId}`"
+              :to="`/doctor/patients/${route.params.patientId}`"
               class="secondary-button"
             >
               Cancel
@@ -161,7 +161,7 @@ onMounted(async () => {
   try {
     const data = await getMedication(
       route.params.patientId,
-      route.params.medicationId
+      route.params.medicationId,
     )
 
     loadMedicationData(data)
@@ -184,7 +184,7 @@ async function saveMedication() {
         dosage: medication.dosage,
         time: medication.time,
         frequency: medication.frequency,
-      }
+      },
     )
 
     saved.value = true

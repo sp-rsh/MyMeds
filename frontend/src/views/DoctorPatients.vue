@@ -67,7 +67,7 @@
 
             <td>
               <RouterLink
-                :to="`/patients/${patient.id}`"
+                :to="`/doctor/patients/${patient.id}`"
                 class="primary-button"
               >
                 View Patient

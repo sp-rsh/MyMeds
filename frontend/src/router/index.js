@@ -18,35 +18,35 @@ const router = createRouter({
       component: LoginView,
     },
     {
-      path: '/',
+      path: '/doctor',
       name: 'doctor-dashboard',
       component: DoctorDashboard,
     },
     {
-      path: '/patients',
+      path: '/doctor/patients',
       name: 'doctor-patients',
       component: DoctorPatients,
     },
     {
-      path: '/patients/:patientId',
+      path: '/doctor/patients/:patientId',
       name: 'patient-details',
       component: PatientDetails,
     },
     {
-      path: '/patients/:patientId/medications/:medicationId',
+      path: '/doctor/patients/:patientId/medications/:medicationId',
       name: 'manage-medication',
       component: ManageMedication,
     },
     {
-      path: '/history',
+      path: '/doctor/history',
       name: 'doctor-history',
       component: MedicationHistory,
     },
     {
-      path: '/profile',
+      path: '/doctor/profile',
       name: 'doctor-profile',
       component: DoctorProfile,
-    },
+    },  
     {
       path: '/patient',
       name: 'patient-dashboard',
