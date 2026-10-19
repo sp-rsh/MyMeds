@@ -1,18 +1,52 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import LoginView from '../views/LoginView.vue'
+
+import DoctorDashboard from '../views/DoctorDashboard.vue'
+import DoctorPatients from '../views/DoctorPatients.vue'
+import PatientDetails from '../views/PatientDetails.vue'
+import ManageMedication from '../views/ManageMedication.vue'
+import MedicationHistory from '../views/MedicationHistory.vue'
+import DoctorProfile from '../views/DoctorProfile.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
 
   routes: [
-    // Default
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+    },
     {
       path: '/',
-      redirect: '/patient',
+      name: 'doctor-dashboard',
+      component: DoctorDashboard,
     },
-
-    // =========================
-    // PATIENT PORTAL
-    // =========================
+    {
+      path: '/patients',
+      name: 'doctor-patients',
+      component: DoctorPatients,
+    },
+    {
+      path: '/patients/:patientId',
+      name: 'patient-details',
+      component: PatientDetails,
+    },
+    {
+      path: '/patients/:patientId/medications/:medicationId',
+      name: 'manage-medication',
+      component: ManageMedication,
+    },
+    {
+      path: '/history',
+      name: 'doctor-history',
+      component: MedicationHistory,
+    },
+    {
+      path: '/profile',
+      name: 'doctor-profile',
+      component: DoctorProfile,
+    },
     {
       path: '/patient',
       name: 'patient-dashboard',
@@ -38,52 +72,40 @@ const router = createRouter({
       name: 'patient-medication-details',
       component: () => import('../views/PatientMedicationDetails.vue'),
     },
-
     {
       path: '/admin',
       name: 'admin-dashboard',
       component: () => import('../views/AdminDashboard.vue'),
     },
-
     {
       path: '/admin/users',
       name: 'admin-users',
       component: () => import('../views/AdminUsers.vue'),
     },
-    {
-  path: '/admin',
-  name: 'admin-dashboard',
-  component: () => import('../views/AdminDashboard.vue'),
-    },
-
-    {
-      path: '/admin/users',
-      name: 'admin-users',
-      component: () => import('../views/AdminUsers.vue'),
-    },
-
     {
       path: '/admin/doctors',
       name: 'admin-doctors',
       component: () => import('../views/AdminDoctors.vue'),
     },
-
     {
       path: '/admin/patients',
       name: 'admin-patients',
       component: () => import('../views/AdminPatients.vue'),
     },
-
     {
       path: '/admin/security',
       name: 'admin-security',
       component: () => import('../views/AdminSecurityLogs.vue'),
     },
-
     {
       path: '/admin/settings',
       name: 'admin-settings',
       component: () => import('../views/AdminSettings.vue'),
+    },
+    {
+      path: '/unauthorized',
+      name: 'unauthorized',
+      component: () => import('../views/Unauthorized.vue'),
     },
   ],
 })
