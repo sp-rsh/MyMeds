@@ -3,7 +3,7 @@ namespace CSP_Hardware;
 
 public class Fingerprint
 {
-    SerialPort serial;
+    readonly SerialPort serial;
     bool isLedEnabled = false;
     public Fingerprint(string port)
     {
@@ -15,21 +15,22 @@ public class Fingerprint
         serial.Open();
         if(TestConnection() != Status.SUCCESS)
             throw new Exception($"Unable to open Serial Port at {port}");
+        LED = false;
     }
     public Status TestConnection() => SendCommandNN(CommandType.TEST_CONNECTION).status;
-    public bool isFingerDetected()
+    public bool IsFingerDetected()
     {
         Response res = SendCommandNN(CommandType.FINGER_DETECT);
         if(!res.isValid || res.data == null || res.data.Length < 1)
             return false;
         if(res.status == Status.SUCCESS)
             return res.data[0] == 1;
-        Console.WriteLine($"[ERROR] {nameof(Fingerprint)}.{nameof(isFingerDetected)} Unexpected Return Status: {res.status}");
+        Console.WriteLine($"[ERROR] {nameof(Fingerprint)}.{nameof(IsFingerDetected)} Unexpected Return Status: {res.status}");
         return false;
     }
     public bool WaitForFinger(ref bool cancel)
     {
-        while(!isFingerDetected() && !cancel)
+        while(!IsFingerDetected() && !cancel)
             Thread.Sleep(100);
         return !cancel;
     }

@@ -66,7 +66,7 @@ class Program
     }
     void AwaitDispense()
     {
-        while(!fpSensor.isFingerDetected())
+        while(!fpSensor.IsFingerDetected())
         {
             fpSensor.LED = !fpSensor.LED;
             Thread.Sleep(500);
