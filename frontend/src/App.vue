@@ -1,19 +1,3 @@
-<template>
-  <RouterView v-if="isLoginPage" />
-  <RouterView v-else-if="isUnauthorizedPage" />
-
-  <div v-else class="app-layout">
-    <DoctorSidebar v-if="isDoctorPortal" />
-    <PatientSidebar v-else-if="isPatientPortal" />
-    <AdminSidebar v-else-if="isAdminPortal" />
-
-    <main class="main-content">
-      <RouterView />
-    </main>
-
-  </div>
-</template>
-
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
@@ -24,30 +8,41 @@ import AdminSidebar from './components/AdminSidebar.vue'
 
 const route = useRoute()
 
-const isLoginPage = computed(() => {
-  return route.path === '/login'
-})
+const isLoginPage = computed(() => route.path === '/login')
+const isUnauthorizedPage = computed(() => route.path === '/unauthorized')
 
-const isUnauthorizedPage = computed(() => {
-  return route.path === '/unauthorized'
-})
+const isAdmin = computed(() => route.path.startsWith('/admin'))
+const isPatient = computed(() => route.path.startsWith('/patient'))
 
-const isDoctorPortal = computed(() => {
-  return (
-    route.path === '/' ||
-    route.path === '/patients' ||
-    route.path.startsWith('/patients/')
-  )
-})
-
-const isPatientPortal = computed(() => {
-  return route.path.startsWith('/patient')
-})
-
-const isAdminPortal = computed(() => {
-  return route.path.startsWith('/admin')
-})
+const isDoctor = computed(
+  () =>
+    !isLoginPage.value &&
+    !isUnauthorizedPage.value &&
+    !isAdmin.value &&
+    !isPatient.value,
+)
 </script>
+
+<template>
+  <RouterView v-if="isLoginPage || isUnauthorizedPage" />
+
+  <div v-else class="app-layout">
+    <DoctorSidebar v-if="isDoctor" />
+    <PatientSidebar v-else-if="isPatient" />
+    <AdminSidebar v-else-if="isAdmin" />
+
+    <main
+      class="main-content"
+      :class="{
+        'doctor-content': isDoctor,
+        'patient-content': isPatient,
+        'admin-content': isAdmin,
+      }"
+    >
+      <RouterView />
+    </main>
+  </div>
+</template>
 
 <style>
 * {
@@ -59,63 +54,34 @@ body,
 #app {
   margin: 0;
   min-height: 100%;
+  width: 100%;
 }
 
 body {
-  margin: 0;
-  background: #f7f9fc;
+  background: #f8fafc;
   color: #172033;
-
   font-family:
     Inter,
     -apple-system,
     BlinkMacSystemFont,
-    "Segoe UI",
+    'Segoe UI',
     sans-serif;
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
 }
 
 .app-layout {
   min-height: 100vh;
+  width: 100%;
 }
 
 .main-content {
-  width: calc(100% - 280px);
   min-height: 100vh;
   margin-left: 280px;
   padding: 48px 42px;
 }
 
-.page-header {
-  margin-bottom: 32px;
-}
-
-.page-title {
-  margin: 0;
-  color: #172033;
-  font-size: 40px;
-  font-weight: 700;
-  letter-spacing: -1px;
-}
-
-.page-subtitle {
-  margin: 10px 0 0;
-  color: #64748b;
-  font-size: 18px;
-  line-height: 1.5;
-}
-
-@media (max-width: 700px) {
-  .main-content {
-    width: 100%;
-    margin-left: 0;
-    padding: 30px 20px;
-  }
+.doctor-content,
+.patient-content,
+.admin-content {
+  margin-left: 280px;
 }
 </style>
