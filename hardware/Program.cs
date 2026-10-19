@@ -23,17 +23,20 @@ class Program
         Thread.Sleep(1000);
         for (int i = 0; i < servos.Length; i++)
             servos[i].Disable();
+    }
+    public async Task Start()
+    {
         while(true)
         {
-            IdleLoop();
+            await IdleLoop();
             Thread.Sleep(1000);
         }
     }
-    void IdleLoop()
+    async Task IdleLoop()
     {
         if(!hasNextEvent)
         {
-            GetNextEvent();
+            await GetNextEvent();
             return;
         }
         if(nextEvent.hasDispensed)
@@ -53,11 +56,11 @@ class Program
             return;
         }
         if(DateTime.UtcNow.Subtract(lastServerUpdate).Minutes > 0)
-            GetNextEvent();
+            await GetNextEvent();
     }
-    void GetNextEvent()
+    async Task GetNextEvent()
     {
-        DispenseEvent? res = API.GetNextDispenseEvent();
+        DispenseEvent? res = await API.GetNextDispenseEvent();
         hasNextEvent = res != null;
         if(res == null)
             return;
@@ -109,8 +112,8 @@ class Program
             if(dispenseTower[i])
                 servos[i].Disable();
     }
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
-        new Program();
+        await new Program().Start();
     }
 }

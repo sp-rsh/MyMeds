@@ -27,8 +27,8 @@ public class Config
             API_DOMAIN = api.Element("Domain")?.Value??API_DOMAIN;
             API_GETEVENT = api.Element("getEvent")?.Value??API_GETEVENT;
             API_POSTEVENT = api.Element("postEvent")?.Value??API_POSTEVENT;
-            if(API_DOMAIN.EndsWith('/'))
-                API_DOMAIN = API_DOMAIN[..^1];
+            if(!API_DOMAIN.EndsWith('/'))
+                API_DOMAIN += '/';
         }
         FINGERPRINT_PORT = config.Root?.Element("Fingerprint_Port")?.Value??FINGERPRINT_PORT;
         XElement? servos = config.Root?.Element("Servos");
