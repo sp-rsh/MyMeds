@@ -1,4 +1,5 @@
 ﻿using CSP_Hardware;
+using Iot.Device.ExplorerHat;
 
 class Program
 {
@@ -34,6 +35,7 @@ class Program
     }
     async Task IdleLoop()
     {
+        fpSensor.LED = false;
         if(!hasNextEvent)
         {
             await GetNextEvent();
