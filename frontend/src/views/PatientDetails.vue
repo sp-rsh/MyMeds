@@ -1,8 +1,8 @@
 <template>
   <section>
     <RouterLink
-      to="/patients"
-      class="back-link"
+  to="/doctor/patients"      
+  class="back-link"
     >
       ← Back to Patients
     </RouterLink>
@@ -183,7 +183,7 @@
             <td>
               <div class="action-cell">
                 <RouterLink
-                  :to="`/patients/${patient.id}/medications/${medication.id}`"
+                  :to="`/doctor/patients/${patient.id}/medications/${medication.id}`"
                   class="primary-button"
                 >
                   Manage
