@@ -14,7 +14,7 @@ public class WebAPI
     }
     public async Task<DispenseEvent?> GetNextDispenseEvent()
     {
-        if(CONFIG.API_DOMAIN == "PLACEHOLDER" || CONFIG.API_GETEVENT == "PLACEHOLDER")
+        if(CONFIG.API_DOMAIN == "PLACEHOLDER/" || CONFIG.API_GETEVENT == "PLACEHOLDER")
             return GetNextEvent_PLACEHOLDER();
         try
         {
@@ -30,7 +30,7 @@ public class WebAPI
     }
     public bool PostDispenseEvent(DispenseEvent dEvent)
     {
-        if(CONFIG.API_DOMAIN == "PLACEHOLDER" || CONFIG.API_POSTEVENT == "PLACEHOLDER")
+        if(CONFIG.API_DOMAIN == "PLACEHOLDER/" || CONFIG.API_POSTEVENT == "PLACEHOLDER")
         {
             Console.WriteLine($"{nameof(WebAPI)}.{nameof(PostDispenseEvent)} used PLACEHOLDER for POST (hasDispensed: {dEvent.hasDispensed}; time: {dEvent.dispensedTime})");
             return true;
