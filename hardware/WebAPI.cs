@@ -11,6 +11,15 @@ public class WebAPI(Config config)
             return GetNextEvent_PLACEHOLDER();
         throw new NotImplementedException($"{nameof(WebAPI)}.{nameof(GetNextDispenseEvent)} not implemented for Non-Placeholders");
     }
+    public bool PostDispenseEvent(DispenseEvent dEvent)
+    {
+        if(CONFIG.API_DOMAIN == "PLACEHOLDER" || CONFIG.API_POSTEVENT == "PLACEHOLDER")
+        {
+            Console.WriteLine($"{nameof(WebAPI)}.{nameof(PostDispenseEvent)} used PLACEHOLDER for POST (hasDispensed: {dEvent.hasDispensed}; time: {dEvent.dispensedTime})");
+            return true;
+        }
+        throw new NotImplementedException($"{nameof(WebAPI)}.{nameof(PostDispenseEvent)} not implemented for Non-Placeholders");
+    }
     DispenseEvent GetNextEvent_PLACEHOLDER()
     {
         Console.WriteLine($"{nameof(WebAPI)}.{nameof(GetNextEvent_PLACEHOLDER)} returned placeholder event!");
@@ -21,14 +30,5 @@ public class WebAPI(Config config)
             targetTimeBuffer = new(0,0,30),
             dispenseRow = [true]
         };
-    }
-    public bool PostDispenseEvent(DispenseEvent dEvent)
-    {
-        if(CONFIG.API_DOMAIN == "PLACEHOLDER" || CONFIG.API_POSTEVENT == "PLACEHOLDER")
-        {
-            Console.WriteLine($"{nameof(WebAPI)}.{nameof(PostDispenseEvent)} used PLACEHOLDER for POST (hasDispensed: {dEvent.hasDispensed}; time: {dEvent.dispensedTime})");
-            return true;
-        }
-        throw new NotImplementedException($"{nameof(WebAPI)}.{nameof(PostDispenseEvent)} not implemented for Non-Placeholders");
     }
 }

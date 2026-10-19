@@ -78,7 +78,7 @@ class Program
             Thread.Sleep(10000);
             cancel = true;
         }).Start();
-        if(!fpSensor.TryVerifyFingerprint(ref cancel, out int fingerID))
+        if(!fpSensor.VerifyFingerprint(ref cancel, out int fingerID))
             return;
         DispenseTowers(nextEvent.dispenseRow);
         nextEvent.dispensedTime = DateTime.UtcNow;

@@ -51,7 +51,7 @@ public class Fingerprint
                 Console.WriteLine($"[ERROR] {nameof(Fingerprint)}.{nameof(LED)}.set Unexpected Error: isValid={res.isValid} status={res.status}");
         }
     }
-    public bool TryVerifyFingerprint(ref bool cancel, out int fingerID)
+    public bool VerifyFingerprint(ref bool cancel, out int fingerID)
     {
         fingerID = -1;
         while(!cancel)
@@ -191,7 +191,7 @@ public class Fingerprint
         ERROR_MERGE_COUNT = 0x25,
         ERROR_BUFFERID_INVALID = 0x26,
         ERROR_FINGER_NOT_DETECTED = 0x28,
-        ERROR_FINGER_CANCLED = 0x41
+        ERROR_FINGER_CANCELED = 0x41
     }
     enum CommandType : ushort {
         TEST_CONNECTION = 0x0001,
