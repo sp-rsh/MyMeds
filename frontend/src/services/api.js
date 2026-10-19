@@ -40,7 +40,13 @@ async function request(url, options = {}) {
     return null
   }
 
-  return response.json()
+  const contentType = response.headers.get('content-type')
+
+  if (contentType?.includes('application/json')) {
+    return response.json()
+  }
+
+  return response.text()
 }
 
 export function getCurrentDoctor() {
@@ -63,6 +69,13 @@ export function getMedication(patientId, medicationId) {
   return request(
     `/doctor/patients/${patientId}/medications/${medicationId}`
   )
+}
+
+export function addMedication(medication) {
+  return request('/medications', {
+    method: 'POST',
+    body: JSON.stringify(medication),
+  })
 }
 
 export function updateMedication(
