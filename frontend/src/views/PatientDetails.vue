@@ -59,9 +59,81 @@
         Current Medications
       </h2>
 
-      <button class="primary-button">
+      <button
+        class="primary-button"
+        @click="showAddMedication = !showAddMedication"
+      >
         + Add Medication
       </button>
+    </div>
+
+    <div
+      v-if="showAddMedication"
+      class="medication-form-card"
+    >
+      <h2>
+        Add Medication
+      </h2>
+
+      <form @submit.prevent="addMedicationToPatient">
+        <div class="form-content">
+          <div class="form-group">
+            <label>
+              Medication Name
+            </label>
+
+            <input
+              v-model="newMedication.name"
+              type="text"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>
+              Dosage
+            </label>
+
+            <input
+              v-model="newMedication.dosage"
+              type="text"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>
+              Scheduled Time
+            </label>
+
+            <input
+              v-model="newMedication.time"
+              type="time"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-footer">
+          <div class="form-actions">
+            <button
+              type="submit"
+              class="primary-button"
+              :disabled="addingMedication"
+            >
+              {{ addingMedication ? 'Adding...' : 'Add Medication' }}
+            </button>
+
+            <button
+              type="button"
+              class="secondary-button"
+              @click="showAddMedication = false"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
 
     <div class="table-card">
@@ -168,19 +240,30 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import {
+  addMedication,
   getPatient,
   removeMedication,
 } from '../services/api'
 
 const route = useRoute()
 
+const showAddMedication = ref(false)
+const addingMedication = ref(false)
+
+const newMedication = reactive({
+  name: '',
+  dosage: '',
+  time: '',
+})
+
 const demoPatient = {
   id: 1,
   name: 'Patient A',
+  patientusername: 'patientA',
   doctorName: 'Anvi',
   status: 'Active',
   adherence: 90,
@@ -212,8 +295,42 @@ async function loadPatient() {
   try {
     patient.value = await getPatient(route.params.patientId)
   } catch {
-    // Temporary fallback until backend integration is complete
     patient.value = demoPatient
+  }
+}
+
+async function addMedicationToPatient() {
+  addingMedication.value = true
+
+  try {
+    await addMedication({
+      patientusername:
+        patient.value.patientusername ??
+        patient.value.username ??
+        route.params.patientId,
+      medicationName: newMedication.name,
+      dosage: newMedication.dosage,
+      scheduledTime: newMedication.time,
+    })
+
+    patient.value.medications.push({
+      id: Date.now(),
+      name: newMedication.name,
+      dosage: newMedication.dosage,
+      time: newMedication.time,
+      frequency: 'Once daily',
+      status: 'Scheduled',
+    })
+
+    newMedication.name = ''
+    newMedication.dosage = ''
+    newMedication.time = ''
+
+    showAddMedication.value = false
+  } catch {
+    alert('Medication could not be added.')
+  } finally {
+    addingMedication.value = false
   }
 }
 
