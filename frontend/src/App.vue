@@ -11,22 +11,22 @@ const route = useRoute()
 const isLoginPage = computed(() => route.path === '/login')
 const isUnauthorizedPage = computed(() => route.path === '/unauthorized')
 
-const isAdmin = computed(() => route.path.startsWith('/admin'))
+const isDoctor = computed(() => route.path.startsWith('/doctor'))
 const isPatient = computed(() => route.path.startsWith('/patient'))
+const isAdmin = computed(() => route.path.startsWith('/admin'))
 
-const isDoctor = computed(
-  () =>
-    !isLoginPage.value &&
-    !isUnauthorizedPage.value &&
-    !isAdmin.value &&
-    !isPatient.value,
+const isStandalonePage = computed(
+  () => isLoginPage.value || isUnauthorizedPage.value
 )
 </script>
 
 <template>
-  <RouterView v-if="isLoginPage || isUnauthorizedPage" />
+  <RouterView v-if="isStandalonePage" />
 
-  <div v-else class="app-layout">
+  <div
+    v-else
+    class="app-layout"
+  >
     <DoctorSidebar v-if="isDoctor" />
     <PatientSidebar v-else-if="isPatient" />
     <AdminSidebar v-else-if="isAdmin" />
@@ -75,7 +75,6 @@ body {
 
 .main-content {
   min-height: 100vh;
-  margin-left: 280px;
   padding: 48px 42px;
 }
 
@@ -83,5 +82,13 @@ body {
 .patient-content,
 .admin-content {
   margin-left: 280px;
+}
+
+@media (max-width: 700px) {
+  .doctor-content,
+  .patient-content,
+  .admin-content {
+    margin-left: 0;
+  }
 }
 </style>

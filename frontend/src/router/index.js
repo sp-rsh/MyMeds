@@ -13,10 +13,16 @@ const router = createRouter({
 
   routes: [
     {
+      path: '/',
+      redirect: '/login',
+    },
+
+    {
       path: '/login',
       name: 'login',
       component: LoginView,
     },
+
     {
       path: '/doctor',
       name: 'doctor-dashboard',
@@ -46,7 +52,8 @@ const router = createRouter({
       path: '/doctor/profile',
       name: 'doctor-profile',
       component: DoctorProfile,
-    },  
+    },
+
     {
       path: '/patient',
       name: 'patient-dashboard',
@@ -72,6 +79,7 @@ const router = createRouter({
       name: 'patient-medication-details',
       component: () => import('../views/PatientMedicationDetails.vue'),
     },
+
     {
       path: '/admin',
       name: 'admin-dashboard',
@@ -97,11 +105,7 @@ const router = createRouter({
       name: 'admin-security',
       component: () => import('../views/AdminSecurityLogs.vue'),
     },
-    {
-      path: '/admin/settings',
-      name: 'admin-settings',
-      component: () => import('../views/AdminSettings.vue'),
-    },
+
     {
       path: '/unauthorized',
       name: 'unauthorized',

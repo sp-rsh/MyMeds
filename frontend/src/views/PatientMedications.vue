@@ -1,56 +1,138 @@
 <template>
   <section class="medications-page">
+
     <header class="page-header">
-      <div>
-        <h1 class="page-title">My Medications</h1>
-        <p class="page-subtitle">
-          View your prescribed medications and today's schedule.
-        </p>
-      </div>
+
+      <h1 class="page-title">
+        My Medications
+      </h1>
+
+      <p class="page-subtitle">
+        View your prescribed medications and today's schedule.
+      </p>
+
     </header>
 
-    <section class="medication-section">
+
+    <div
+      v-if="errorMessage"
+      class="error-box"
+    >
+      <CircleAlert :size="20" />
+
+      <div>
+        <strong>
+          Unable to load medications
+        </strong>
+
+        <p>
+          {{ errorMessage }}
+        </p>
+      </div>
+
+      <button @click="loadMedications">
+        Retry
+      </button>
+    </div>
+
+
+    <div
+      v-if="loading"
+      class="loading-state"
+    >
+      <LoaderCircle
+        :size="30"
+        class="loading-icon"
+      />
+
+      Loading medications...
+    </div>
+
+
+    <section
+      v-else
+      class="medication-section"
+    >
+
       <div class="section-header">
+
         <div>
-          <h2 class="section-title">Medication Schedule</h2>
+          <h2 class="section-title">
+            Medication Schedule
+          </h2>
+
           <p class="section-subtitle">
             Your current medications and scheduled doses.
           </p>
         </div>
+
       </div>
 
-      <div class="medication-list">
+
+      <div
+        v-if="medications.length"
+        class="medication-list"
+      >
+
         <RouterLink
           v-for="medication in medications"
           :key="medication.id"
-          :to="`/patient/medications/${medication.id}`"
+          :to="`/patient/medications/${encodeURIComponent(medication.id)}`"
           class="medication-card"
         >
+
           <div class="medication-main">
+
             <div class="medication-icon">
               <Pill :size="22" />
             </div>
 
             <div class="medication-info">
-              <h3>{{ medication.name }}</h3>
-              <p>{{ medication.dosage }}</p>
+
+              <h3>
+                {{ medication.name }}
+              </h3>
+
+              <p>
+                {{ medication.dosage || 'No dosage specified' }}
+              </p>
+
             </div>
+
           </div>
+
 
           <div class="schedule-info">
-            <span class="info-label">Scheduled time</span>
-            <strong>{{ medication.time }}</strong>
+
+            <span class="info-label">
+              Scheduled time
+            </span>
+
+            <strong>
+              {{ medication.time || '—' }}
+            </strong>
+
           </div>
 
+
           <div class="frequency-info">
-            <span class="info-label">Frequency</span>
-            <strong>{{ medication.frequency }}</strong>
+
+            <span class="info-label">
+              Frequency
+            </span>
+
+            <strong>
+              {{ medication.frequency || '—' }}
+            </strong>
+
           </div>
+
 
           <span
             class="status-badge"
             :class="medication.statusClass"
           >
+
             <CheckCircle2
               v-if="medication.status === 'Taken'"
               :size="15"
@@ -67,17 +149,40 @@
             />
 
             {{ medication.status }}
+
           </span>
+
 
           <ChevronRight
             class="chevron"
             :size="20"
           />
+
         </RouterLink>
+
       </div>
+
+
+      <div
+        v-else-if="!errorMessage"
+        class="empty-state"
+      >
+        <Pill :size="30" />
+
+        <strong>
+          No medications available
+        </strong>
+
+        <span>
+          No prescribed medications were returned for your account.
+        </span>
+      </div>
+
     </section>
 
+
     <div class="info-bar">
+
       <Pill :size="20" />
 
       <p>
@@ -85,49 +190,140 @@
         You can view medication details, but medication changes must be made
         by your doctor.
       </p>
+
     </div>
+
   </section>
 </template>
 
+
 <script setup>
+import {
+  onMounted,
+  ref,
+} from 'vue'
+
 import {
   Pill,
   CheckCircle2,
   Clock3,
   CalendarClock,
   ChevronRight,
+  CircleAlert,
+  LoaderCircle,
 } from '@lucide/vue'
 
-const medications = [
-  {
-    id: 'vitamin-d',
-    name: 'Vitamin D',
-    dosage: '1 tablet',
-    time: '08:00',
-    frequency: 'Daily',
-    status: 'Taken',
-    statusClass: 'taken',
-  },
-  {
-    id: 'metformin',
-    name: 'Metformin',
-    dosage: '2 tablets',
-    time: '13:00',
-    frequency: 'Daily',
-    status: 'Scheduled',
-    statusClass: 'scheduled',
-  },
-  {
-    id: 'aspirin',
-    name: 'Aspirin',
-    dosage: '1 tablet',
-    time: '20:00',
-    frequency: 'Daily',
-    status: 'Upcoming',
-    statusClass: 'upcoming',
-  },
-]
+import {
+  getPatientMedications,
+} from '../services/api'
+
+
+const medications = ref([])
+
+const loading = ref(true)
+const errorMessage = ref('')
+
+
+async function loadMedications() {
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    const result =
+      await getPatientMedications()
+
+    medications.value =
+      result.map(addDisplayStatus)
+
+  } catch (error) {
+    console.error(
+      'Failed to load patient medications:',
+      error
+    )
+
+    medications.value = []
+
+    errorMessage.value =
+      getErrorMessage(error)
+
+  } finally {
+    loading.value = false
+  }
+}
+
+
+function addDisplayStatus(medication) {
+  const raw =
+    String(
+      medication.status || ''
+    ).toLowerCase()
+
+  let status
+
+  if (
+    raw === 'taken' ||
+    raw === 'completed' ||
+    raw === 'collected'
+  ) {
+    status = 'Taken'
+
+  } else if (raw === 'scheduled') {
+    status = 'Scheduled'
+
+  } else if (raw === 'upcoming') {
+    status = 'Upcoming'
+
+  } else {
+    status = isPastTime(medication.time)
+      ? 'Scheduled'
+      : 'Upcoming'
+  }
+
+  return {
+    ...medication,
+
+    status,
+
+    statusClass:
+      status.toLowerCase(),
+  }
+}
+
+
+function isPastTime(time) {
+  if (!time || !time.includes(':')) {
+    return false
+  }
+
+  const [hours, minutes] =
+    time.split(':').map(Number)
+
+  const now = new Date()
+
+  return (
+    hours * 60 + minutes <=
+    now.getHours() * 60 +
+    now.getMinutes()
+  )
+}
+
+
+function getErrorMessage(error) {
+  if (error?.status === 401) {
+    return 'Authentication is required.'
+  }
+
+  if (error?.status === 403) {
+    return 'You do not have permission to view medications.'
+  }
+
+  return 'Medication information is currently unavailable.'
+}
+
+
+onMounted(loadMedications)
 </script>
+
 
 <style scoped>
 .medications-page {
@@ -151,13 +347,11 @@ const medications = [
   color: #172033;
   font-size: 26px;
   font-weight: 700;
-  letter-spacing: -0.4px;
 }
 
 .section-subtitle {
   margin: 6px 0 0;
   color: #64748b;
-  font-size: 15px;
 }
 
 .medication-list {
@@ -168,7 +362,13 @@ const medications = [
 
 .medication-card {
   display: grid;
-  grid-template-columns: minmax(260px, 1.5fr) 150px 130px 125px 24px;
+  grid-template-columns:
+    minmax(260px, 1.5fr)
+    150px
+    130px
+    125px
+    24px;
+
   align-items: center;
   gap: 20px;
 
@@ -180,17 +380,10 @@ const medications = [
 
   color: inherit;
   text-decoration: none;
-
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
 }
 
 .medication-card:hover {
   border-color: #cbd8eb;
-  box-shadow: 0 5px 18px rgba(23, 32, 51, 0.06);
-  transform: translateY(-1px);
 }
 
 .medication-main {
@@ -202,32 +395,23 @@ const medications = [
 .medication-icon {
   width: 46px;
   height: 46px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  flex-shrink: 0;
-
   border-radius: 12px;
-
   background: #eaf2ff;
   color: #2563eb;
 }
 
 .medication-info h3 {
   margin: 0;
-
   color: #172033;
   font-size: 17px;
-  font-weight: 650;
 }
 
 .medication-info p {
   margin: 5px 0 0;
-
   color: #64748b;
-  font-size: 14px;
 }
 
 .schedule-info,
@@ -242,41 +426,29 @@ const medications = [
   font-size: 12px;
 }
 
-.schedule-info strong,
-.frequency-info strong {
-  color: #172033;
-  font-size: 15px;
-  font-weight: 600;
-}
-
 .status-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-
   width: fit-content;
-
   padding: 7px 11px;
-
   border-radius: 999px;
-
   font-size: 13px;
   font-weight: 600;
-  white-space: nowrap;
 }
 
-.status-badge.taken {
+.taken {
   background: #ecfdf3;
   color: #15803d;
 }
 
-.status-badge.scheduled {
+.scheduled {
   background: #eaf2ff;
   color: #2563eb;
 }
 
-.status-badge.upcoming {
+.upcoming {
   background: #f1f5f9;
   color: #64748b;
 }
@@ -287,51 +459,84 @@ const medications = [
 
 .info-bar {
   display: flex;
-  align-items: flex-start;
   gap: 12px;
-
   padding: 17px 20px;
-
   border: 1px solid #dbeafe;
   border-radius: 14px;
-
   background: #f8fbff;
   color: #2563eb;
 }
 
 .info-bar p {
   margin: 0;
-
   color: #64748b;
-  font-size: 14px;
   line-height: 1.5;
 }
 
-@media (max-width: 1050px) {
-  .medication-card {
-    grid-template-columns: 1fr 140px 120px 120px 24px;
-    gap: 14px;
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding: 15px 17px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.error-box div {
+  flex: 1;
+}
+
+.error-box p {
+  margin: 3px 0 0;
+  font-size: 13px;
+}
+
+.error-box button {
+  padding: 7px 12px;
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  background: white;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 50px 20px;
+  color: #94a3b8;
+  text-align: center;
+}
+
+.empty-state strong {
+  color: #475569;
+}
+
+.loading-icon {
+  animation: spin .9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
 @media (max-width: 850px) {
   .medication-card {
     grid-template-columns: 1fr auto;
-    gap: 16px;
   }
 
   .schedule-info,
-  .frequency-info {
-    margin-left: 61px;
-  }
-
+  .frequency-info,
   .status-badge {
     margin-left: 61px;
-  }
-
-  .chevron {
-    grid-column: 2;
-    grid-row: 1;
   }
 }
 </style>

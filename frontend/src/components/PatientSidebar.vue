@@ -2,39 +2,59 @@
   <aside class="sidebar">
     <div>
       <div class="brand">
+        <div class="brand-circle"></div>
         <h1>MyMeds</h1>
       </div>
 
-      <p class="portal-label">Patient Portal</p>
+      <p class="portal-label">
+        Patient Portal
+      </p>
 
       <div class="sidebar-divider"></div>
 
-      <p class="menu-label">MENU</p>
+      <p class="menu-label">
+        MENU
+      </p>
 
       <nav class="sidebar-nav">
-        <RouterLink to="/patient" class="nav-item">
+        <RouterLink
+          to="/patient"
+          class="nav-item"
+        >
           <LayoutDashboard :size="21" />
           <span>Dashboard</span>
         </RouterLink>
 
-        <RouterLink to="/patient/medications" class="nav-item">
+        <RouterLink
+          to="/patient/medications"
+          class="nav-item"
+        >
           <Pill :size="21" />
           <span>My Medications</span>
         </RouterLink>
 
-        <RouterLink to="/patient/history" class="nav-item">
+        <RouterLink
+          to="/patient/history"
+          class="nav-item"
+        >
           <History :size="21" />
           <span>Medication History</span>
         </RouterLink>
 
-        <RouterLink to="/patient/profile" class="nav-item">
+        <RouterLink
+          to="/patient/profile"
+          class="nav-item"
+        >
           <UserCircle :size="21" />
           <span>My Profile</span>
         </RouterLink>
       </nav>
     </div>
 
-    <button class="logout-button" type="button">
+    <button
+      class="logout-button"
+      type="button"
+    >
       <LogOut :size="21" />
       <span>Logout</span>
     </button>
@@ -75,6 +95,18 @@ import {
 .brand {
   display: flex;
   align-items: center;
+  gap: 12px;
+
+  padding: 0 8px;
+}
+
+.brand-circle {
+  width: 12px;
+  height: 12px;
+
+  border-radius: 50%;
+
+  background: #2563eb;
 }
 
 .brand h1 {
@@ -82,36 +114,35 @@ import {
 
   color: #172033;
 
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: -0.5px;
 }
 
 .portal-label {
-  margin: 24px 0 0;
+  margin: 8px 8px 22px;
 
   color: #64748b;
 
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .sidebar-divider {
   height: 1px;
 
-  margin: 22px 0 24px;
+  margin: 0 8px 24px;
 
   background: #e2e8f0;
 }
 
 .menu-label {
-  margin: 0 0 12px;
+  margin: 0 8px 12px;
 
   color: #94a3b8;
 
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.08em;
 }
 
 .sidebar-nav {
@@ -127,15 +158,15 @@ import {
 
   width: 100%;
 
-  padding: 12px 14px;
+  padding: 12px 13px;
 
-  border-radius: 9px;
+  border-radius: 8px;
 
   color: #64748b;
 
   text-decoration: none;
 
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 500;
 
   transition:
@@ -145,12 +176,13 @@ import {
 
 .nav-item:hover {
   background: #f1f5f9;
-  color: #2563eb;
+  color: #172033;
 }
 
 .nav-item.router-link-active {
   background: #eff6ff;
   color: #2563eb;
+
   font-weight: 600;
 }
 
@@ -165,21 +197,22 @@ import {
 
   width: 100%;
 
-  padding: 12px 14px;
+  padding: 12px 13px;
 
   border: none;
-  border-radius: 9px;
+  border-radius: 8px;
 
   background: transparent;
 
   color: #64748b;
 
-  font-size: 15px;
+  font-family: inherit;
+  font-size: 14px;
   font-weight: 500;
 
-  cursor: pointer;
-
   text-align: left;
+
+  cursor: pointer;
 }
 
 .logout-button:hover {

@@ -3,57 +3,19 @@
 
     <header class="page-header">
       <div>
-        <p class="eyebrow">ADMINISTRATION</p>
-        <h1 class="page-title">Patients</h1>
+        <p class="eyebrow">
+          ADMINISTRATION
+        </p>
+
+        <h1 class="page-title">
+          Patients
+        </h1>
+
         <p class="page-subtitle">
-          Manage patient accounts and doctor assignments.
+          View patient accounts and manage doctor assignments.
         </p>
       </div>
-
-      <button class="primary-button" @click="openAddPatient">
-        <UserPlus :size="18" />
-        Add Patient
-      </button>
     </header>
-
-
-    <!-- Summary -->
-    <section class="summary-grid">
-
-      <div class="summary-card">
-        <div class="summary-icon blue">
-          <Users :size="21" />
-        </div>
-
-        <div>
-          <span>Total Patients</span>
-          <strong>{{ patients.length }}</strong>
-        </div>
-      </div>
-
-      <div class="summary-card">
-        <div class="summary-icon green">
-          <UserCheck :size="21" />
-        </div>
-
-        <div>
-          <span>Active Patients</span>
-          <strong>{{ activePatients }}</strong>
-        </div>
-      </div>
-
-      <div class="summary-card">
-        <div class="summary-icon purple">
-          <Stethoscope :size="21" />
-        </div>
-
-        <div>
-          <span>Assigned Patients</span>
-          <strong>{{ assignedPatients }}</strong>
-        </div>
-      </div>
-
-    </section>
 
 
     <section class="panel">
@@ -65,22 +27,30 @@
 
           <input
             v-model="searchQuery"
+            type="text"
             placeholder="Search patients..."
           />
         </div>
 
-        <select v-model="doctorFilter">
-          <option value="All">All doctors</option>
-          <option value="Dr. Sharma">Dr. Sharma</option>
-          <option value="Dr. Mehta">Dr. Mehta</option>
-          <option value="Dr. Kapoor">Dr. Kapoor</option>
-          <option value="Unassigned">Unassigned</option>
-        </select>
+        <select
+          v-model="doctorFilter"
+          class="filter-select"
+        >
+          <option value="All">
+            All doctors
+          </option>
 
-        <select v-model="statusFilter">
-          <option value="All">All statuses</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
+          <option value="Unassigned">
+            Unassigned
+          </option>
+
+          <option
+            v-for="doctor in doctors"
+            :key="doctor.id"
+            :value="doctor.id"
+          >
+            {{ doctor.name }}
+          </option>
         </select>
 
       </div>
@@ -94,12 +64,12 @@
             <tr>
               <th>Patient</th>
               <th>Assigned Doctor</th>
-              <th>Medication Plan</th>
-              <th>Status</th>
-              <th>Last Login</th>
-              <th>Actions</th>
+              <th class="actions-column">
+                Actions
+              </th>
             </tr>
           </thead>
+
 
           <tbody>
 
@@ -116,8 +86,13 @@
                   </div>
 
                   <div>
-                    <strong>{{ patient.name }}</strong>
-                    <span>{{ patient.email }}</span>
+                    <strong>
+                      {{ patient.name }}
+                    </strong>
+
+                    <span>
+                      {{ patient.email }}
+                    </span>
                   </div>
 
                 </div>
@@ -125,66 +100,49 @@
 
 
               <td>
-                <span class="doctor">
-                  {{ patient.doctor || 'Unassigned' }}
+                <span class="doctor-name">
+                  {{ getDoctorName(patient.doctorId) }}
                 </span>
               </td>
 
 
-              <td>
-                <span class="medication-count">
-                  {{ patient.medications }} medications
-                </span>
-              </td>
+              <td class="actions-column">
 
-
-              <td>
-                <span
-                  class="status"
-                  :class="patient.status === 'Active'
-                    ? 'active'
-                    : 'inactive'"
+                <button
+                  class="assignment-button"
+                  type="button"
+                  @click="openAssignment(patient)"
                 >
-                  <span></span>
-                  {{ patient.status }}
-                </span>
+                  <Stethoscope :size="17" />
+
+                  {{
+                    patient.doctorId
+                      ? 'Change Doctor'
+                      : 'Assign Doctor'
+                  }}
+                </button>
+
               </td>
 
-
-              <td class="muted">
-                {{ patient.lastLogin }}
-              </td>
+            </tr>
 
 
-              <td>
+            <tr v-if="filteredPatients.length === 0">
 
-                <div class="actions">
+              <td colspan="3">
 
-                  <button
-                    class="icon-button"
-                    title="Edit patient"
-                    @click="editPatient(patient)"
-                  >
-                    <Pencil :size="17" />
-                  </button>
+                <div class="empty-state">
 
-                  <button
-                    class="icon-button"
-                    :class="patient.status === 'Active'
-                      ? 'danger'
-                      : 'success'"
-                    @click="toggleStatus(patient)"
-                  >
-                    <UserX
-                      v-if="patient.status === 'Active'"
-                      :size="17"
-                    />
+                  <Users :size="30" />
 
-                    <UserCheck
-                      v-else
-                      :size="17"
-                    />
-                  </button>
+                  <strong>
+                    No patients available
+                  </strong>
+
+                  <span>
+                    Patient accounts will appear here once they are
+                    loaded from the backend.
+                  </span>
 
                 </div>
 
@@ -208,24 +166,29 @@
       </div>
 
       <div>
-        <h3>Patient account administration</h3>
+
+        <h3>
+          Patient assignments
+        </h3>
 
         <p>
-          Administrators manage patient accounts and doctor
-          assignments. Patient medication schedules and clinical
-          decisions remain under doctor control.
+          Administrators manage doctor-patient assignments.
+          Patient account details and status are managed from the
+          Users page. Medication schedules and clinical decisions
+          remain under doctor control.
         </p>
+
       </div>
 
     </section>
 
 
-    <!-- Modal -->
+    <!-- Assignment modal -->
 
     <div
-      v-if="showModal"
+      v-if="showAssignmentModal"
       class="modal-overlay"
-      @click.self="closeModal"
+      @click.self="closeAssignment"
     >
 
       <div class="modal">
@@ -234,17 +197,19 @@
 
           <div>
             <p class="modal-eyebrow">
-              {{ editingPatient ? 'EDIT PATIENT' : 'NEW PATIENT' }}
+              DOCTOR ASSIGNMENT
             </p>
 
             <h2>
-              {{ editingPatient ? 'Edit Patient' : 'Add Patient' }}
+              {{ selectedPatient?.name }}
             </h2>
           </div>
 
+
           <button
             class="close-button"
-            @click="closeModal"
+            type="button"
+            @click="closeAssignment"
           >
             <X :size="20" />
           </button>
@@ -252,37 +217,49 @@
         </div>
 
 
-        <div class="form">
+        <div
+          v-if="doctors.length === 0"
+          class="modal-empty-state"
+        >
+
+          <Stethoscope :size="28" />
+
+          <strong>
+            No doctors available
+          </strong>
+
+          <span>
+            Doctor accounts will appear here once they are loaded
+            from the backend.
+          </span>
+
+        </div>
+
+
+        <div
+          v-else
+          class="assignment-form"
+        >
 
           <label>
-            Full Name
+            <span>
+              Assigned Doctor
+            </span>
 
-            <input
-              v-model="form.name"
-              placeholder="Patient name"
-            />
-          </label>
+            <select v-model="selectedDoctorId">
 
+              <option value="">
+                Unassigned
+              </option>
 
-          <label>
-            Email
+              <option
+                v-for="doctor in doctors"
+                :key="doctor.id"
+                :value="doctor.id"
+              >
+                {{ doctor.name }}
+              </option>
 
-            <input
-              v-model="form.email"
-              type="email"
-              placeholder="patient@example.com"
-            />
-          </label>
-
-
-          <label>
-            Assigned Doctor
-
-            <select v-model="form.doctor">
-              <option value="">Unassigned</option>
-              <option>Dr. Sharma</option>
-              <option>Dr. Mehta</option>
-              <option>Dr. Kapoor</option>
             </select>
           </label>
 
@@ -293,16 +270,20 @@
 
           <button
             class="secondary-button"
-            @click="closeModal"
+            type="button"
+            @click="closeAssignment"
           >
             Cancel
           </button>
 
+
           <button
             class="primary-button"
-            @click="savePatient"
+            type="button"
+            :disabled="doctors.length === 0"
+            @click="saveAssignment"
           >
-            {{ editingPatient ? 'Save Changes' : 'Create Patient' }}
+            Save Assignment
           </button>
 
         </div>
@@ -316,195 +297,142 @@
 
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import {
+  computed,
+  ref,
+} from 'vue'
 
 import {
   Users,
-  UserPlus,
-  UserCheck,
-  UserX,
   Stethoscope,
   Search,
-  Pencil,
   ShieldCheck,
   X,
 } from '@lucide/vue'
 
 
-const patients = ref([
-  {
-    id: 1,
-    name: 'Anvi Chahal',
-    email: 'anvi.chahal@example.com',
-    doctor: 'Dr. Sharma',
-    medications: 3,
-    status: 'Active',
-    lastLogin: 'Today, 09:42',
-  },
-  {
-    id: 2,
-    name: 'Rahul Mehta',
-    email: 'rahul.mehta@example.com',
-    doctor: 'Dr. Sharma',
-    medications: 4,
-    status: 'Active',
-    lastLogin: 'Today, 08:17',
-  },
-  {
-    id: 3,
-    name: 'Priya Kapoor',
-    email: 'priya.kapoor@example.com',
-    doctor: 'Dr. Mehta',
-    medications: 2,
-    status: 'Active',
-    lastLogin: 'Yesterday, 18:31',
-  },
-  {
-    id: 4,
-    name: 'Arjun Singh',
-    email: 'arjun.singh@example.com',
-    doctor: '',
-    medications: 0,
-    status: 'Inactive',
-    lastLogin: 'Oct 10, 2026',
-  },
-])
+const patients = ref([])
 
+const doctors = ref([])
 
 const searchQuery = ref('')
+
 const doctorFilter = ref('All')
-const statusFilter = ref('All')
 
-const showModal = ref(false)
-const editingPatient = ref(null)
+const showAssignmentModal = ref(false)
 
+const selectedPatient = ref(null)
 
-const form = reactive({
-  name: '',
-  email: '',
-  doctor: '',
-})
+const selectedDoctorId = ref('')
 
 
 const filteredPatients = computed(() => {
 
-  const query = searchQuery.value
-    .trim()
-    .toLowerCase()
+  const query =
+    searchQuery.value
+      .trim()
+      .toLowerCase()
+
 
   return patients.value.filter((patient) => {
 
     const matchesSearch =
       !query ||
-      patient.name.toLowerCase().includes(query) ||
-      patient.email.toLowerCase().includes(query)
+      patient.name
+        .toLowerCase()
+        .includes(query) ||
+      patient.email
+        .toLowerCase()
+        .includes(query)
 
-    const matchesDoctor =
-      doctorFilter.value === 'All' ||
-      (doctorFilter.value === 'Unassigned'
-        ? !patient.doctor
-        : patient.doctor === doctorFilter.value)
 
-    const matchesStatus =
-      statusFilter.value === 'All' ||
-      patient.status === statusFilter.value
+    let matchesDoctor = true
+
+
+    if (doctorFilter.value === 'Unassigned') {
+
+      matchesDoctor = !patient.doctorId
+
+    } else if (doctorFilter.value !== 'All') {
+
+      matchesDoctor =
+        String(patient.doctorId) ===
+        String(doctorFilter.value)
+    }
+
 
     return (
       matchesSearch &&
-      matchesDoctor &&
-      matchesStatus
+      matchesDoctor
     )
   })
 })
 
 
-const activePatients = computed(() =>
-  patients.value.filter(
-    patient => patient.status === 'Active'
-  ).length
-)
+function openAssignment(patient) {
+
+  selectedPatient.value = patient
+
+  selectedDoctorId.value =
+    patient.doctorId ?? ''
+
+  showAssignmentModal.value = true
+}
 
 
-const assignedPatients = computed(() =>
-  patients.value.filter(
-    patient => patient.doctor
-  ).length
-)
+function closeAssignment() {
+
+  showAssignmentModal.value = false
+
+  selectedPatient.value = null
+
+  selectedDoctorId.value = ''
+}
+
+
+function saveAssignment() {
+
+  if (!selectedPatient.value) {
+    return
+  }
+
+
+  selectedPatient.value.doctorId =
+    selectedDoctorId.value || null
+
+
+  closeAssignment()
+}
+
+
+function getDoctorName(doctorId) {
+
+  if (!doctorId) {
+    return 'Unassigned'
+  }
+
+
+  const doctor =
+    doctors.value.find(
+      item =>
+        String(item.id) ===
+        String(doctorId)
+    )
+
+
+  return doctor?.name || 'Unassigned'
+}
 
 
 function getInitials(name) {
-  return name
+
+  return String(name || '')
     .split(' ')
+    .filter(Boolean)
     .map(part => part[0])
     .join('')
     .slice(0, 2)
     .toUpperCase()
-}
-
-
-function openAddPatient() {
-  editingPatient.value = null
-
-  form.name = ''
-  form.email = ''
-  form.doctor = ''
-
-  showModal.value = true
-}
-
-
-function editPatient(patient) {
-  editingPatient.value = patient
-
-  form.name = patient.name
-  form.email = patient.email
-  form.doctor = patient.doctor
-
-  showModal.value = true
-}
-
-
-function closeModal() {
-  showModal.value = false
-  editingPatient.value = null
-}
-
-
-function savePatient() {
-
-  if (!form.name.trim() || !form.email.trim()) {
-    return
-  }
-
-  if (editingPatient.value) {
-
-    editingPatient.value.name = form.name
-    editingPatient.value.email = form.email
-    editingPatient.value.doctor = form.doctor
-
-  } else {
-
-    patients.value.push({
-      id: Date.now(),
-      name: form.name,
-      email: form.email,
-      doctor: form.doctor,
-      medications: 0,
-      status: 'Active',
-      lastLogin: 'Never',
-    })
-
-  }
-
-  closeModal()
-}
-
-
-function toggleStatus(patient) {
-  patient.status =
-    patient.status === 'Active'
-      ? 'Inactive'
-      : 'Active'
 }
 </script>
 
@@ -514,394 +442,597 @@ function toggleStatus(patient) {
   width: 100%;
 }
 
+
+/* Header */
+
 .page-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 30px;
   margin-bottom: 30px;
 }
 
+
 .eyebrow {
   margin: 0 0 8px;
+
   color: #2563eb;
+
   font-size: 12px;
   font-weight: 700;
+
   letter-spacing: 1.2px;
 }
 
+
 .page-title {
   margin: 0;
+
   color: #172033;
+
   font-size: 38px;
   font-weight: 700;
+
   letter-spacing: -1px;
 }
 
+
 .page-subtitle {
   margin: 9px 0 0;
+
   color: #64748b;
+
   font-size: 17px;
 }
 
-.primary-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 11px 17px;
-  border: none;
-  border-radius: 9px;
-  background: #2563eb;
-  color: #ffffff;
-  font-weight: 600;
-  cursor: pointer;
-}
 
-.secondary-button {
-  padding: 11px 17px;
-  border: 1px solid #e2e8f0;
-  border-radius: 9px;
-  background: #ffffff;
-  color: #475569;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-bottom: 24px;
-}
-
-.summary-card {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 20px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 13px;
-}
-
-.summary-icon {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-}
-
-.summary-icon.blue {
-  color: #2563eb;
-  background: #eff6ff;
-}
-
-.summary-icon.green {
-  color: #16a34a;
-  background: #f0fdf4;
-}
-
-.summary-icon.purple {
-  color: #7c3aed;
-  background: #f5f3ff;
-}
-
-.summary-card span {
-  display: block;
-  color: #94a3b8;
-  font-size: 12px;
-}
-
-.summary-card strong {
-  display: block;
-  margin-top: 3px;
-  color: #172033;
-  font-size: 24px;
-}
+/* Panel */
 
 .panel {
   overflow: hidden;
+
   background: #ffffff;
+
   border: 1px solid #e2e8f0;
   border-radius: 14px;
 }
 
+
+/* Toolbar */
+
 .toolbar {
   display: flex;
+  align-items: center;
+
   gap: 12px;
+
   padding: 18px 20px;
+
   border-bottom: 1px solid #e2e8f0;
 }
 
+
 .search-box {
   position: relative;
+
   flex: 1;
+
   max-width: 420px;
 }
 
+
 .search-box svg {
   position: absolute;
+
   top: 50%;
   left: 13px;
+
   transform: translateY(-50%);
+
   color: #94a3b8;
 }
+
 
 .search-box input {
   width: 100%;
   height: 42px;
+
   padding: 0 14px 0 41px;
+
   border: 1px solid #e2e8f0;
   border-radius: 8px;
+
+  outline: none;
+
+  color: #172033;
+
+  background: #ffffff;
+}
+
+
+.search-box input:focus {
+  border-color: #93c5fd;
+
+  box-shadow: 0 0 0 3px #eff6ff;
+}
+
+
+.filter-select {
+  height: 42px;
+
+  padding: 0 32px 0 12px;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #475569;
+
   outline: none;
 }
 
-.toolbar select {
-  height: 42px;
-  padding: 0 30px 0 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #ffffff;
-}
+
+/* Table */
 
 .table-wrapper {
   overflow-x: auto;
 }
 
+
 table {
   width: 100%;
-  min-width: 900px;
+
+  min-width: 650px;
+
   border-collapse: collapse;
 }
 
+
 th {
   padding: 14px 20px;
+
   background: #f8fafc;
+
   border-bottom: 1px solid #e2e8f0;
+
   color: #64748b;
+
   font-size: 11px;
+  font-weight: 700;
+
   text-align: left;
+
   text-transform: uppercase;
-  letter-spacing: .7px;
+
+  letter-spacing: 0.7px;
 }
+
 
 td {
   padding: 16px 20px;
+
   border-bottom: 1px solid #f1f5f9;
+
+  vertical-align: middle;
 }
+
+
+tbody tr:hover {
+  background: #fafcff;
+}
+
+
+/* Patient */
 
 .user-cell {
   display: flex;
   align-items: center;
+
   gap: 12px;
 }
+
 
 .avatar {
   width: 40px;
   height: 40px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  flex-shrink: 0;
+
   border-radius: 50%;
+
   background: #eff6ff;
+
   color: #2563eb;
+
   font-size: 12px;
   font-weight: 700;
 }
 
+
 .user-cell strong {
   display: block;
+
   color: #172033;
+
   font-size: 14px;
 }
 
+
 .user-cell span {
   display: block;
+
   margin-top: 3px;
+
   color: #94a3b8;
+
   font-size: 12px;
 }
 
-.doctor,
-.medication-count,
-.muted {
+
+.doctor-name {
   color: #64748b;
+
   font-size: 13px;
 }
 
-.status {
+
+.actions-column {
+  text-align: right !important;
+}
+
+
+.assignment-button {
   display: inline-flex;
   align-items: center;
+
   gap: 7px;
-  font-size: 12px;
-  font-weight: 600;
-}
 
-.status > span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
+  padding: 8px 11px;
 
-.status.active {
-  color: #15803d;
-}
-
-.status.active > span {
-  background: #22c55e;
-}
-
-.status.inactive {
-  color: #94a3b8;
-}
-
-.status.inactive > span {
-  background: #94a3b8;
-}
-
-.actions {
-  display: flex;
-  gap: 6px;
-}
-
-.icon-button {
-  width: 34px;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border: 1px solid #e2e8f0;
-  border-radius: 7px;
+  border-radius: 8px;
+
   background: #ffffff;
-  color: #64748b;
+
+  color: #475569;
+
+  font-size: 13px;
+  font-weight: 600;
+
   cursor: pointer;
 }
 
-.icon-button.danger:hover {
-  color: #dc2626;
+
+.assignment-button:hover {
+  background: #f8fafc;
+
+  color: #2563eb;
 }
 
-.icon-button.success:hover {
-  color: #16a34a;
+
+/* Empty */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 60px 20px;
+
+  color: #94a3b8;
+
+  text-align: center;
 }
+
+
+.empty-state strong {
+  color: #475569;
+
+  font-size: 14px;
+}
+
+
+.empty-state span {
+  max-width: 430px;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+
+/* Information */
 
 .info-box {
   display: flex;
+  align-items: flex-start;
+
   gap: 14px;
+
   margin-top: 24px;
+
   padding: 20px 22px;
+
   background: #eff6ff;
+
   border: 1px solid #dbeafe;
   border-radius: 14px;
 }
 
+
 .info-icon {
   width: 42px;
   height: 42px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   flex-shrink: 0;
+
   background: #ffffff;
+
   color: #2563eb;
+
   border-radius: 10px;
 }
 
+
 .info-box h3 {
   margin: 0;
+
+  color: #172033;
+
   font-size: 14px;
 }
 
+
 .info-box p {
   margin: 5px 0 0;
+
   color: #64748b;
+
   font-size: 13px;
+
   line-height: 1.5;
 }
 
+
+/* Modal */
+
 .modal-overlay {
   position: fixed;
+
   inset: 0;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(15, 23, 42, .42);
+
+  padding: 20px;
+
+  background: rgba(15, 23, 42, 0.42);
+
   z-index: 1000;
 }
 
+
 .modal {
-  width: min(520px, 90%);
+  width: min(520px, 100%);
+
   padding: 26px;
+
   background: #ffffff;
+
   border-radius: 16px;
 }
 
+
 .modal-header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
+
   margin-bottom: 24px;
 }
 
+
 .modal-eyebrow {
   margin: 0 0 5px;
+
   color: #2563eb;
+
   font-size: 10px;
   font-weight: 700;
+
+  letter-spacing: 1px;
 }
+
 
 .modal h2 {
   margin: 0;
+
+  color: #172033;
 }
+
 
 .close-button {
   width: 36px;
   height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   border: none;
   border-radius: 8px;
+
   background: #f8fafc;
+
+  color: #64748b;
+
   cursor: pointer;
 }
 
-.form {
+
+/* Assignment */
+
+.assignment-form {
   display: grid;
-  gap: 17px;
+
+  gap: 16px;
 }
 
-.form label {
+
+.assignment-form label {
   display: grid;
+
   gap: 7px;
+}
+
+
+.assignment-form label span {
   color: #475569;
+
   font-size: 13px;
   font-weight: 600;
 }
 
-.form input,
-.form select {
+
+.assignment-form select {
   height: 42px;
+
   padding: 0 12px;
+
   border: 1px solid #e2e8f0;
   border-radius: 8px;
+
+  background: #ffffff;
+
+  color: #172033;
+
+  outline: none;
 }
+
+
+.assignment-form select:focus {
+  border-color: #93c5fd;
+
+  box-shadow: 0 0 0 3px #eff6ff;
+}
+
+
+.modal-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 36px 20px;
+
+  color: #94a3b8;
+
+  text-align: center;
+}
+
+
+.modal-empty-state strong {
+  color: #475569;
+
+  font-size: 14px;
+}
+
+
+.modal-empty-state span {
+  max-width: 340px;
+
+  font-size: 13px;
+
+  line-height: 1.5;
+}
+
+
+/* Buttons */
+
+.primary-button,
+.secondary-button {
+  padding: 10px 16px;
+
+  border-radius: 8px;
+
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+
+.primary-button {
+  border: none;
+
+  background: #2563eb;
+
+  color: #ffffff;
+}
+
+
+.primary-button:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+
+.primary-button:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+
+.secondary-button {
+  border: 1px solid #e2e8f0;
+
+  background: #ffffff;
+
+  color: #475569;
+}
+
+
+.secondary-button:hover {
+  background: #f8fafc;
+}
+
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
+
   gap: 10px;
+
   margin-top: 25px;
+
   padding-top: 20px;
+
   border-top: 1px solid #f1f5f9;
 }
 
-@media (max-width: 800px) {
-  .summary-grid {
-    grid-template-columns: 1fr;
+
+/* Responsive */
+
+@media (max-width: 700px) {
+
+  .toolbar {
+    flex-direction: column;
+
+    align-items: stretch;
   }
 
-  .page-header {
-    align-items: flex-start;
-    flex-direction: column;
+
+  .search-box {
+    max-width: none;
   }
 }
 </style>

@@ -1,345 +1,160 @@
 <template>
   <div class="admin-page">
-
     <header class="page-header">
-      <div>
-        <p class="eyebrow">ADMINISTRATION</p>
-        <h1 class="page-title">Security Logs</h1>
-        <p class="page-subtitle">
-          Monitor authentication, access, and administrative events.
-        </p>
-      </div>
+      <p class="eyebrow">
+        ADMINISTRATION
+      </p>
+
+      <h1 class="page-title">
+        Security Logs
+      </h1>
+
+      <p class="page-subtitle">
+        Review security and administrative activity recorded by MyMeds.
+      </p>
     </header>
 
-
-    <!-- Summary -->
-
-    <section class="summary-grid">
-
-      <div class="summary-card">
-        <div class="summary-icon blue">
-          <Activity :size="21" />
-        </div>
-
-        <div>
-          <span>Events Today</span>
-          <strong>{{ logs.length }}</strong>
-        </div>
+    <section class="status-card">
+      <div class="status-icon">
+        <ShieldCheck :size="26" />
       </div>
 
+      <div>
+        <h2>
+          Security logging
+        </h2>
 
-      <div class="summary-card">
-        <div class="summary-icon green">
-          <CheckCircle2 :size="21" />
-        </div>
-
-        <div>
-          <span>Successful</span>
-          <strong>{{ successfulEvents }}</strong>
-        </div>
+        <p>
+          This page is ready to display audit events once security logging is
+          connected to the backend.
+        </p>
       </div>
-
-
-      <div class="summary-card">
-        <div class="summary-icon red">
-          <AlertTriangle :size="21" />
-        </div>
-
-        <div>
-          <span>Security Alerts</span>
-          <strong>{{ alerts }}</strong>
-        </div>
-      </div>
-
     </section>
-
-
-    <!-- Filters -->
 
     <section class="panel">
+      <div class="panel-header">
+        <div>
+          <h2>
+            Recorded Events
+          </h2>
 
-      <div class="toolbar">
-
-        <div class="search-box">
-          <Search :size="19" />
-
-          <input
-            v-model="searchQuery"
-            placeholder="Search security events..."
-          />
+          <p>
+            Authentication, account, role, and access-control events will appear here.
+          </p>
         </div>
 
-
-        <select v-model="typeFilter">
-          <option value="All">All event types</option>
-          <option value="Login">Login</option>
-          <option value="Role Change">Role Change</option>
-          <option value="Account">Account</option>
-          <option value="Access">Access</option>
-          <option value="Security">Security</option>
-        </select>
-
-
-        <select v-model="resultFilter">
-          <option value="All">All results</option>
-          <option value="Success">Success</option>
-          <option value="Warning">Warning</option>
-          <option value="Blocked">Blocked</option>
-        </select>
-
+        <Activity :size="22" />
       </div>
 
+      <div class="empty-state">
+        <div class="empty-icon">
+          <FileClock :size="30" />
+        </div>
 
-      <!-- Logs -->
+        <h3>
+          No security events available
+        </h3>
 
-      <div class="table-wrapper">
-
-        <table>
-
-          <thead>
-            <tr>
-              <th>Time</th>
-              <th>Event</th>
-              <th>User</th>
-              <th>Type</th>
-              <th>Result</th>
-              <th>Details</th>
-            </tr>
-          </thead>
-
-
-          <tbody>
-
-            <tr
-              v-for="log in filteredLogs"
-              :key="log.id"
-            >
-
-              <td class="time">
-                {{ log.time }}
-              </td>
-
-
-              <td>
-                <strong class="event">
-                  {{ log.event }}
-                </strong>
-              </td>
-
-
-              <td>
-                <span class="user">
-                  {{ log.user }}
-                </span>
-              </td>
-
-
-              <td>
-                <span class="type-badge">
-                  {{ log.type }}
-                </span>
-              </td>
-
-
-              <td>
-
-                <span
-                  class="result"
-                  :class="getResultClass(log.result)"
-                >
-                  <span></span>
-                  {{ log.result }}
-                </span>
-
-              </td>
-
-
-              <td>
-                <span class="details">
-                  {{ log.details }}
-                </span>
-              </td>
-
-            </tr>
-
-          </tbody>
-
-        </table>
-
+        <p>
+          Security events will be shown here once audit logging is connected
+          to the MyMeds backend.
+        </p>
       </div>
-
     </section>
 
+    <section class="event-types">
+      <h2>
+        Events that can be recorded
+      </h2>
 
-    <!-- Security explanation -->
+      <div class="event-grid">
+        <div class="event-card">
+          <LogIn :size="21" />
+
+          <div>
+            <strong>
+              Authentication
+            </strong>
+
+            <p>
+              Successful and unsuccessful login attempts.
+            </p>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <Users :size="21" />
+
+          <div>
+            <strong>
+              Account administration
+            </strong>
+
+            <p>
+              Creation and modification of user accounts.
+            </p>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <ShieldCheck :size="21" />
+
+          <div>
+            <strong>
+              Role changes
+            </strong>
+
+            <p>
+              Changes to user roles and permissions.
+            </p>
+          </div>
+        </div>
+
+        <div class="event-card">
+          <UserCheck :size="21" />
+
+          <div>
+            <strong>
+              Patient assignments
+            </strong>
+
+            <p>
+              Changes to doctor-patient assignments.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section class="info-box">
-
       <div class="info-icon">
         <ShieldCheck :size="21" />
       </div>
 
       <div>
-        <h3>Security monitoring</h3>
+        <h3>
+          Audit trail
+        </h3>
 
         <p>
-          Security logs provide an audit trail for authentication,
-          role changes, account administration, and blocked access
-          attempts. Sensitive actions should be recorded with the
-          responsible user and timestamp.
+          When backend audit logging is implemented, sensitive administrative
+          actions should include the responsible user and timestamp.
         </p>
       </div>
-
     </section>
-
   </div>
 </template>
 
-
 <script setup>
-import { computed, ref } from 'vue'
-
 import {
   Activity,
-  CheckCircle2,
-  AlertTriangle,
-  Search,
+  FileClock,
+  LogIn,
+  Users,
   ShieldCheck,
+  UserCheck,
 } from '@lucide/vue'
-
-
-const logs = ref([
-  {
-    id: 1,
-    time: '10:22',
-    event: 'Admin login',
-    user: 'System Administrator',
-    type: 'Login',
-    result: 'Success',
-    details: '2FA verified',
-  },
-  {
-    id: 2,
-    time: '10:05',
-    event: 'Doctor login',
-    user: 'Dr. Sharma',
-    type: 'Login',
-    result: 'Success',
-    details: 'Successful authentication',
-  },
-  {
-    id: 3,
-    time: '09:54',
-    event: 'Role updated',
-    user: 'System Administrator',
-    type: 'Role Change',
-    result: 'Success',
-    details: 'Patient role confirmed',
-  },
-  {
-    id: 4,
-    time: '09:41',
-    event: 'Patient account created',
-    user: 'System Administrator',
-    type: 'Account',
-    result: 'Success',
-    details: 'New patient account',
-  },
-  {
-    id: 5,
-    time: '09:17',
-    event: 'Unauthorized access attempt',
-    user: 'Unknown',
-    type: 'Access',
-    result: 'Blocked',
-    details: 'Admin endpoint denied',
-  },
-  {
-    id: 6,
-    time: '08:56',
-    event: 'Multiple failed logins',
-    user: 'Unknown',
-    type: 'Security',
-    result: 'Warning',
-    details: '5 failed attempts',
-  },
-  {
-    id: 7,
-    time: '08:32',
-    event: 'Doctor login',
-    user: 'Dr. Mehta',
-    type: 'Login',
-    result: 'Success',
-    details: 'Successful authentication',
-  },
-])
-
-
-const searchQuery = ref('')
-const typeFilter = ref('All')
-const resultFilter = ref('All')
-
-
-const filteredLogs = computed(() => {
-
-  const query = searchQuery.value
-    .trim()
-    .toLowerCase()
-
-  return logs.value.filter((log) => {
-
-    const matchesSearch =
-      !query ||
-      log.event.toLowerCase().includes(query) ||
-      log.user.toLowerCase().includes(query) ||
-      log.details.toLowerCase().includes(query)
-
-    const matchesType =
-      typeFilter.value === 'All' ||
-      log.type === typeFilter.value
-
-    const matchesResult =
-      resultFilter.value === 'All' ||
-      log.result === resultFilter.value
-
-    return (
-      matchesSearch &&
-      matchesType &&
-      matchesResult
-    )
-  })
-})
-
-
-const successfulEvents = computed(() =>
-  logs.value.filter(
-    log => log.result === 'Success'
-  ).length
-)
-
-
-const alerts = computed(() =>
-  logs.value.filter(
-    log =>
-      log.result === 'Warning' ||
-      log.result === 'Blocked'
-  ).length
-)
-
-
-function getResultClass(result) {
-  if (result === 'Success') {
-    return 'success'
-  }
-
-  if (result === 'Warning') {
-    return 'warning'
-  }
-
-  return 'blocked'
-}
 </script>
-
 
 <style scoped>
 .admin-page {
@@ -352,7 +167,9 @@ function getResultClass(result) {
 
 .eyebrow {
   margin: 0 0 8px;
+
   color: #2563eb;
+
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.2px;
@@ -360,7 +177,9 @@ function getResultClass(result) {
 
 .page-title {
   margin: 0;
+
   color: #172033;
+
   font-size: 38px;
   font-weight: 700;
   letter-spacing: -1px;
@@ -368,240 +187,257 @@ function getResultClass(result) {
 
 .page-subtitle {
   margin: 9px 0 0;
+
   color: #64748b;
+
   font-size: 17px;
 }
 
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-bottom: 24px;
-}
-
-.summary-card {
+.status-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 20px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 13px;
+
+  gap: 16px;
+
+  margin-bottom: 24px;
+
+  padding: 22px;
+
+  background: #eff6ff;
+
+  border: 1px solid #dbeafe;
+  border-radius: 14px;
 }
 
-.summary-icon {
-  width: 44px;
-  height: 44px;
+.status-icon {
+  width: 50px;
+  height: 50px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 10px;
-}
 
-.summary-icon.blue {
+  flex-shrink: 0;
+
+  border-radius: 12px;
+
+  background: #ffffff;
   color: #2563eb;
-  background: #eff6ff;
 }
 
-.summary-icon.green {
-  color: #16a34a;
-  background: #f0fdf4;
-}
+.status-card h2 {
+  margin: 0;
 
-.summary-icon.red {
-  color: #dc2626;
-  background: #fef2f2;
-}
-
-.summary-card span {
-  display: block;
-  color: #94a3b8;
-  font-size: 12px;
-}
-
-.summary-card strong {
-  display: block;
-  margin-top: 3px;
   color: #172033;
-  font-size: 24px;
+
+  font-size: 18px;
+}
+
+.status-card p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .panel {
   overflow: hidden;
+
+  margin-bottom: 24px;
+
   background: #ffffff;
+
   border: 1px solid #e2e8f0;
   border-radius: 14px;
 }
 
-.toolbar {
+.panel-header {
   display: flex;
-  gap: 12px;
-  padding: 18px 20px;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 22px;
+
   border-bottom: 1px solid #e2e8f0;
 }
 
-.search-box {
-  position: relative;
-  flex: 1;
-  max-width: 420px;
+.panel-header h2 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 18px;
 }
 
-.search-box svg {
-  position: absolute;
-  top: 50%;
-  left: 13px;
-  transform: translateY(-50%);
+.panel-header p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+}
+
+.panel-header > svg {
   color: #94a3b8;
 }
 
-.search-box input {
-  width: 100%;
-  height: 42px;
-  padding: 0 14px 0 41px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  outline: none;
-}
-
-.toolbar select {
-  height: 42px;
-  padding: 0 30px 0 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #475569;
-}
-
-.table-wrapper {
-  overflow-x: auto;
-}
-
-table {
-  width: 100%;
-  min-width: 900px;
-  border-collapse: collapse;
-}
-
-th {
-  padding: 14px 20px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-  color: #64748b;
-  font-size: 11px;
-  text-align: left;
-  text-transform: uppercase;
-  letter-spacing: .7px;
-}
-
-td {
-  padding: 16px 20px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.time,
-.user,
-.details {
-  color: #64748b;
-  font-size: 13px;
-}
-
-.event {
-  color: #172033;
-  font-size: 13px;
-}
-
-.type-badge {
-  padding: 6px 9px;
-  border-radius: 7px;
-  background: #f1f5f9;
-  color: #475569;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.result {
-  display: inline-flex;
+.empty-state {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  font-weight: 600;
+
+  padding: 55px 25px;
+
+  text-align: center;
 }
 
-.result > span {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+.empty-icon {
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 16px;
+
+  border-radius: 15px;
+
+  background: #f1f5f9;
+  color: #64748b;
 }
 
-.result.success {
-  color: #15803d;
+.empty-state h3 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 17px;
 }
 
-.result.success > span {
-  background: #22c55e;
+.empty-state p {
+  max-width: 500px;
+
+  margin: 8px 0 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.6;
 }
 
-.result.warning {
-  color: #c2410c;
+.event-types {
+  margin-bottom: 24px;
 }
 
-.result.warning > span {
-  background: #f97316;
+.event-types > h2 {
+  margin: 0 0 15px;
+
+  color: #172033;
+
+  font-size: 20px;
 }
 
-.result.blocked {
-  color: #dc2626;
+.event-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 14px;
 }
 
-.result.blocked > span {
-  background: #ef4444;
+.event-card {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 13px;
+
+  padding: 19px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.event-card > svg {
+  flex-shrink: 0;
+
+  color: #2563eb;
+}
+
+.event-card strong {
+  color: #172033;
+
+  font-size: 14px;
+}
+
+.event-card p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .info-box {
   display: flex;
+  align-items: flex-start;
+
   gap: 14px;
-  margin-top: 24px;
+
   padding: 20px 22px;
-  background: #eff6ff;
-  border: 1px solid #dbeafe;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
   border-radius: 14px;
 }
 
 .info-icon {
   width: 42px;
   height: 42px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   flex-shrink: 0;
+
+  border-radius: 10px;
+
   background: #ffffff;
   color: #2563eb;
-  border-radius: 10px;
+
+  border: 1px solid #e2e8f0;
 }
 
 .info-box h3 {
   margin: 0;
+
+  color: #172033;
+
   font-size: 14px;
 }
 
 .info-box p {
   margin: 5px 0 0;
+
   color: #64748b;
+
   font-size: 13px;
   line-height: 1.5;
 }
 
-@media (max-width: 800px) {
-  .summary-grid {
+@media (max-width: 750px) {
+  .event-grid {
     grid-template-columns: 1fr;
   }
 
-  .toolbar {
-    flex-direction: column;
-  }
-
-  .search-box {
-    max-width: none;
+  .page-title {
+    font-size: 32px;
   }
 }
 </style>

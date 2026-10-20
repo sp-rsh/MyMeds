@@ -1,277 +1,201 @@
 <template>
   <div class="admin-dashboard">
-
-    <!-- Header -->
     <header class="page-header">
-      <p class="eyebrow">ADMINISTRATION</p>
+      <p class="eyebrow">
+        ADMINISTRATION
+      </p>
 
       <h1 class="page-title">
         Admin Dashboard
       </h1>
 
       <p class="page-subtitle">
-        Overview of users, system status, and recent administrative activity.
+        Manage MyMeds user accounts, roles, and doctor-patient assignments.
       </p>
     </header>
 
-
-    <!-- Overview Cards -->
-    <section class="overview-grid">
-
-      <div class="overview-card">
-        <div class="card-icon blue">
-          <Users :size="22" />
+    <section class="action-grid">
+      <RouterLink
+        to="/admin/users"
+        class="action-card"
+      >
+        <div class="action-icon blue">
+          <Users :size="24" />
         </div>
 
         <div>
-          <p class="card-label">TOTAL USERS</p>
-          <p class="card-value">24</p>
-        </div>
-      </div>
+          <h2>
+            Manage Users
+          </h2>
 
-
-      <div class="overview-card">
-        <div class="card-icon purple">
-          <Stethoscope :size="22" />
-        </div>
-
-        <div>
-          <p class="card-label">ACTIVE DOCTORS</p>
-          <p class="card-value">6</p>
-        </div>
-      </div>
-
-
-      <div class="overview-card">
-        <div class="card-icon green">
-          <UserRound :size="22" />
-        </div>
-
-        <div>
-          <p class="card-label">ACTIVE PATIENTS</p>
-          <p class="card-value">18</p>
-        </div>
-      </div>
-
-
-      <div class="overview-card">
-        <div class="card-icon green">
-          <CheckCircle2 :size="22" />
-        </div>
-
-        <div>
-          <p class="card-label">SYSTEM STATUS</p>
-
-          <p class="card-value status-value">
-            Operational
+          <p>
+            Create accounts, update roles, and manage account access.
           </p>
         </div>
-      </div>
 
+        <ChevronRight :size="20" />
+      </RouterLink>
+
+      <RouterLink
+        to="/admin/doctors"
+        class="action-card"
+      >
+        <div class="action-icon purple">
+          <Stethoscope :size="24" />
+        </div>
+
+        <div>
+          <h2>
+            Manage Doctors
+          </h2>
+
+          <p>
+            Manage doctor accounts and patient assignments.
+          </p>
+        </div>
+
+        <ChevronRight :size="20" />
+      </RouterLink>
+
+      <RouterLink
+        to="/admin/patients"
+        class="action-card"
+      >
+        <div class="action-icon green">
+          <UserRound :size="24" />
+        </div>
+
+        <div>
+          <h2>
+            Manage Patients
+          </h2>
+
+          <p>
+            Manage patient accounts and assign doctors when needed.
+          </p>
+        </div>
+
+        <ChevronRight :size="20" />
+      </RouterLink>
+
+      <RouterLink
+        to="/admin/security"
+        class="action-card"
+      >
+        <div class="action-icon orange">
+          <ShieldCheck :size="24" />
+        </div>
+
+        <div>
+          <h2>
+            Security Logs
+          </h2>
+
+          <p>
+            View security and administrative activity when audit logging is available.
+          </p>
+        </div>
+
+        <ChevronRight :size="20" />
+      </RouterLink>
     </section>
 
-
-    <!-- Main Grid -->
-    <section class="main-grid">
-
-      <!-- System Status -->
-      <div class="panel">
-
-        <div class="panel-header">
-          <div>
-            <h2>System Status</h2>
-
-            <p>
-              Current status of MyMeds services.
-            </p>
-          </div>
-
-          <div class="status-pill">
-            <span></span>
-            Operational
-          </div>
-        </div>
-
-
-        <div class="status-list">
-
-          <div class="status-row">
-            <div class="status-left">
-              <div class="status-icon">
-                <Cpu :size="19" />
-              </div>
-
-              <div>
-                <strong>Raspberry Pi</strong>
-                <span>Medication dispenser</span>
-              </div>
-            </div>
-
-            <span class="online">
-              Online
-            </span>
-          </div>
-
-
-          <div class="status-row">
-            <div class="status-left">
-              <div class="status-icon">
-                <Database :size="19" />
-              </div>
-
-              <div>
-                <strong>Database</strong>
-                <span>Application data storage</span>
-              </div>
-            </div>
-
-            <span class="online">
-              Connected
-            </span>
-          </div>
-
-
-          <div class="status-row">
-            <div class="status-left">
-              <div class="status-icon">
-                <ShieldCheck :size="19" />
-              </div>
-
-              <div>
-                <strong>Authentication</strong>
-                <span>Login and access control</span>
-              </div>
-            </div>
-
-            <span class="online">
-              Operational
-            </span>
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- Recent Activity -->
-      <div class="panel">
-
-        <div class="panel-header">
-          <div>
-            <h2>Recent Activity</h2>
-
-            <p>
-              Latest administrative events.
-            </p>
-          </div>
-
-          <Activity :size="21" class="header-icon" />
-        </div>
-
-
-        <div class="activity-list">
-
-          <div class="activity-item">
-            <div class="activity-icon">
-              <UserPlus :size="18" />
-            </div>
-
-            <div class="activity-content">
-              <strong>Patient account created</strong>
-              <span>2 minutes ago</span>
-            </div>
-          </div>
-
-
-          <div class="activity-item">
-            <div class="activity-icon">
-              <UserCheck :size="18" />
-            </div>
-
-            <div class="activity-content">
-              <strong>Patient assigned to doctor</strong>
-              <span>18 minutes ago</span>
-            </div>
-          </div>
-
-
-          <div class="activity-item">
-            <div class="activity-icon">
-              <ShieldCheck :size="18" />
-            </div>
-
-            <div class="activity-content">
-              <strong>User role updated</strong>
-              <span>42 minutes ago</span>
-            </div>
-          </div>
-
-
-          <div class="activity-item">
-            <div class="activity-icon">
-              <ClipboardCheck :size="18" />
-            </div>
-
-            <div class="activity-content">
-              <strong>Medication activity recorded</strong>
-              <span>1 hour ago</span>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-    </section>
-
-
-    <!-- Admin Permission Information -->
-    <section class="permission-info">
-
-      <div class="permission-icon">
+    <section class="admin-info">
+      <div class="info-icon">
         <ShieldCheck :size="22" />
       </div>
 
       <div>
-        <h3>Administrator permissions</h3>
+        <h2>
+          Administrator permissions
+        </h2>
 
         <p>
-          Admin permissions are limited to account, role, system,
-          and security administration. Medication prescribing and
-          clinical changes remain under doctor control.
+          Administrators manage accounts, roles, and doctor-patient assignments.
+          Medication prescribing, dosage changes, and other clinical decisions
+          remain under doctor control.
         </p>
       </div>
-
     </section>
 
+    <section class="workflow-card">
+      <div class="workflow-header">
+        <div class="workflow-icon">
+          <UserRound :size="22" />
+        </div>
+
+        <div>
+          <h2>
+            Patient assignment
+          </h2>
+
+          <p>
+            Patients do not need to be assigned to a doctor immediately.
+          </p>
+        </div>
+      </div>
+
+      <div class="workflow-steps">
+        <div class="workflow-step">
+          <span>1</span>
+
+          <div>
+            <strong>
+              Create patient account
+            </strong>
+
+            <p>
+              Add the patient to MyMeds.
+            </p>
+          </div>
+        </div>
+
+        <div class="workflow-step">
+          <span>2</span>
+
+          <div>
+            <strong>
+              Assign a doctor
+            </strong>
+
+            <p>
+              The doctor can be selected during creation or assigned later.
+            </p>
+          </div>
+        </div>
+
+        <div class="workflow-step">
+          <span>3</span>
+
+          <div>
+            <strong>
+              Doctor manages medication
+            </strong>
+
+            <p>
+              Medication schedules and clinical changes remain doctor responsibilities.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
-
 
 <script setup>
 import {
   Users,
   Stethoscope,
   UserRound,
-  CheckCircle2,
-  Cpu,
-  Database,
   ShieldCheck,
-  Activity,
-  UserPlus,
-  UserCheck,
-  ClipboardCheck,
+  ChevronRight,
 } from '@lucide/vue'
 </script>
-
 
 <style scoped>
 .admin-dashboard {
   width: 100%;
 }
-
-
-/* Header */
 
 .page-header {
   margin-bottom: 32px;
@@ -284,7 +208,6 @@ import {
 
   font-size: 12px;
   font-weight: 700;
-
   letter-spacing: 1.2px;
 }
 
@@ -295,7 +218,6 @@ import {
 
   font-size: 38px;
   font-weight: 700;
-
   letter-spacing: -1px;
 }
 
@@ -308,313 +230,126 @@ import {
   line-height: 1.5;
 }
 
-
-/* Overview */
-
-.overview-grid {
+.action-grid {
   display: grid;
-
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 
   gap: 18px;
 
   margin-bottom: 24px;
 }
 
-.overview-card {
-  display: flex;
+.action-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
 
-  gap: 15px;
+  gap: 16px;
 
-  min-height: 120px;
+  min-height: 130px;
 
-  padding: 22px;
+  padding: 24px;
 
   background: #ffffff;
 
   border: 1px solid #e2e8f0;
-
   border-radius: 14px;
+
+  color: inherit;
+  text-decoration: none;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 
-.card-icon {
-  width: 48px;
-  height: 48px;
+.action-card:hover {
+  border-color: #cbd8eb;
+
+  box-shadow: 0 5px 18px rgba(23, 32, 51, 0.06);
+
+  transform: translateY(-1px);
+}
+
+.action-icon {
+  width: 50px;
+  height: 50px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 12px;
-
   flex-shrink: 0;
+
+  border-radius: 12px;
 }
 
-.card-icon.blue {
+.action-icon.blue {
   color: #2563eb;
   background: #eff6ff;
 }
 
-.card-icon.purple {
+.action-icon.purple {
   color: #7c3aed;
   background: #f5f3ff;
 }
 
-.card-icon.green {
+.action-icon.green {
   color: #16a34a;
   background: #f0fdf4;
 }
 
-.card-label {
-  margin: 0 0 5px;
-
-  color: #94a3b8;
-
-  font-size: 11px;
-  font-weight: 700;
-
-  letter-spacing: 0.8px;
+.action-icon.orange {
+  color: #ea580c;
+  background: #fff7ed;
 }
 
-.card-value {
+.action-card h2 {
   margin: 0;
 
   color: #172033;
 
-  font-size: 27px;
+  font-size: 18px;
   font-weight: 700;
 }
 
-.status-value {
-  font-size: 21px;
-}
-
-
-/* Main panels */
-
-.main-grid {
-  display: grid;
-
-  grid-template-columns:
-    minmax(0, 1.15fr)
-    minmax(0, 0.85fr);
-
-  gap: 24px;
-}
-
-.panel {
-  background: #ffffff;
-
-  border: 1px solid #e2e8f0;
-
-  border-radius: 14px;
-
-  padding: 26px;
-}
-
-.panel-header {
-  display: flex;
-
-  align-items: flex-start;
-  justify-content: space-between;
-
-  margin-bottom: 22px;
-}
-
-.panel-header h2 {
-  margin: 0;
-
-  color: #172033;
-
-  font-size: 19px;
-  font-weight: 700;
-}
-
-.panel-header p {
+.action-card p {
   margin: 6px 0 0;
 
   color: #64748b;
 
   font-size: 14px;
+  line-height: 1.5;
 }
 
-.header-icon {
+.action-card > svg {
   color: #94a3b8;
 }
 
-
-/* Status */
-
-.status-pill {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-
-  padding: 7px 10px;
-
-  border-radius: 999px;
-
-  color: #15803d;
-  background: #f0fdf4;
-
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status-pill span {
-  width: 7px;
-  height: 7px;
-
-  border-radius: 50%;
-
-  background: #22c55e;
-}
-
-.status-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.status-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 15px 0;
-
-  border-top: 1px solid #f1f5f9;
-}
-
-.status-left {
-  display: flex;
-  align-items: center;
-
-  gap: 12px;
-}
-
-.status-icon {
-  width: 40px;
-  height: 40px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: #2563eb;
-  background: #eff6ff;
-
-  border-radius: 9px;
-}
-
-.status-left strong {
-  display: block;
-
-  color: #172033;
-
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.status-left span {
-  display: block;
-
-  margin-top: 3px;
-
-  color: #94a3b8;
-
-  font-size: 12px;
-}
-
-.online {
-  color: #16a34a;
-
-  font-size: 13px;
-  font-weight: 600;
-}
-
-
-/* Activity */
-
-.activity-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.activity-item {
-  display: flex;
-  align-items: center;
-
-  gap: 12px;
-
-  padding: 14px 0;
-
-  border-top: 1px solid #f1f5f9;
-}
-
-.activity-icon {
-  width: 38px;
-  height: 38px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-
-  color: #2563eb;
-  background: #eff6ff;
-
-  border-radius: 9px;
-}
-
-.activity-content strong {
-  display: block;
-
-  color: #172033;
-
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.activity-content span {
-  display: block;
-
-  margin-top: 3px;
-
-  color: #94a3b8;
-
-  font-size: 12px;
-}
-
-
-/* Permission information */
-
-.permission-info {
+.admin-info {
   display: flex;
   align-items: flex-start;
 
   gap: 14px;
 
-  margin-top: 24px;
+  margin-bottom: 24px;
 
   padding: 20px 22px;
 
   background: #eff6ff;
 
   border: 1px solid #dbeafe;
-
   border-radius: 14px;
 }
 
-.permission-icon {
+.info-icon {
+  width: 42px;
+  height: 42px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-
-  width: 42px;
-  height: 42px;
 
   flex-shrink: 0;
 
@@ -625,16 +360,121 @@ import {
   border-radius: 10px;
 }
 
-.permission-info h3 {
+.admin-info h2 {
   margin: 0;
 
   color: #172033;
 
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
 }
 
-.permission-info p {
+.admin-info p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.workflow-card {
+  padding: 24px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.workflow-header {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  margin-bottom: 22px;
+}
+
+.workflow-icon {
+  width: 44px;
+  height: 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 11px;
+
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.workflow-header h2 {
+  margin: 0;
+
+  color: #172033;
+
+  font-size: 18px;
+}
+
+.workflow-header p {
+  margin: 5px 0 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+}
+
+.workflow-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 16px;
+}
+
+.workflow-step {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 12px;
+
+  padding: 18px;
+
+  background: #f8fafc;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.workflow-step > span {
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #2563eb;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.workflow-step strong {
+  color: #172033;
+
+  font-size: 14px;
+}
+
+.workflow-step p {
   margin: 5px 0 0;
 
   color: #64748b;
@@ -643,27 +483,27 @@ import {
   line-height: 1.5;
 }
 
-
-/* Responsive */
-
-@media (max-width: 1100px) {
-  .overview-grid {
-    grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+@media (max-width: 900px) {
+  .action-grid {
+    grid-template-columns: 1fr;
   }
 
-  .main-grid {
+  .workflow-steps {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 700px) {
-  .overview-grid {
-    grid-template-columns: 1fr;
-  }
-
+@media (max-width: 600px) {
   .page-title {
     font-size: 32px;
+  }
+
+  .action-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .action-card > svg {
+    display: none;
   }
 }
 </style>
