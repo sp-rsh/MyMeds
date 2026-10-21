@@ -17,11 +17,7 @@ public class Credentials {
     private String email;
     private String role;
     private String specialization;
-
-    @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
-
-    @Column(nullable = false, columnDefinition = "boolean default true")
     private boolean active = true;
 
     public boolean isActive() {

@@ -13,9 +13,9 @@ import java.util.List;
 @RequestMapping("api/medications")
 public class MedicationController {
     private final Medicationrepo repo;
-    private final Databaserepo drepo;
+    private final Userrepo drepo;
     private final DoctorPatientAssignmentrepo assignmentRepo;
-    public MedicationController(Medicationrepo repo, Databaserepo drepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public MedicationController(Medicationrepo repo, Userrepo drepo, DoctorPatientAssignmentrepo assignmentRepo) {
         this.repo = repo;
         this.drepo = drepo;
         this.assignmentRepo = assignmentRepo;
@@ -115,7 +115,6 @@ public class MedicationController {
         Credentials doctor = drepo.findByUsername(principal.getUsername());
         if (doctor == null || !doctor.isActive() || doctor.getRole() == null) return null;
         String role = doctor.getRole().toUpperCase();
-        if (role.startsWith("ROLE_")) role = role.substring(5);
         return "DOCTOR".equals(role) ? doctor : null;
     }
 
@@ -124,9 +123,6 @@ public class MedicationController {
             return false;
         }
         String role = user.getRole().toUpperCase();
-        if (role.startsWith("ROLE_")) {
-            role = role.substring(5);
-        }
         return "PATIENT".equals(role);
     }
 }

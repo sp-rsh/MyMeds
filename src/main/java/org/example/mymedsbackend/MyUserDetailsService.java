@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MyUserDetailsService implements UserDetailsService {
     @Autowired
-    private Databaserepo repo;
+    private Userrepo repo;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Credentials user = repo.findByUsername(username);

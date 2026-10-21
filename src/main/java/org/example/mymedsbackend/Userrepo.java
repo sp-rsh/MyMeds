@@ -4,7 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface Databaserepo extends JpaRepository<Credentials, Integer>{
+public interface Userrepo extends JpaRepository<Credentials, Integer>{
     Credentials findByUsername(String username);
     List<Credentials> findByRole(String role);
     List<Credentials> findAllByOrderByUsernameAsc();

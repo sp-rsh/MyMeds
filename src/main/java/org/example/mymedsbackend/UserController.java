@@ -22,7 +22,7 @@ public class UserController {
 
     private static final Set<String> ROLES = Set.of("ADMIN", "DOCTOR", "PATIENT");
 
-    private final Databaserepo repo;
+    private final Userrepo repo;
     private final PasswordEncoder passwordEncoder;
     private final Medicationrepo medicationRepo;
     private final MedicationLogrepo logRepo;
@@ -30,7 +30,7 @@ public class UserController {
     private final SecurityLogService securityLog;
 
     public UserController(
-            Databaserepo repo,
+            Userrepo repo,
             PasswordEncoder passwordEncoder,
             Medicationrepo medicationRepo,
             MedicationLogrepo logRepo,

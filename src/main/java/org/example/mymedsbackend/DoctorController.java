@@ -23,12 +23,12 @@ public class DoctorController {
 
     private static final DateTimeFormatter HM = DateTimeFormatter.ofPattern("HH:mm");
 
-    private final Databaserepo userRepo;
+    private final Userrepo userRepo;
     private final Medicationrepo medicationRepo;
     private final MedicationLogrepo logRepo;
     private final DoctorPatientAssignmentrepo assignmentRepo;
 
-    public DoctorController(Databaserepo userRepo, Medicationrepo medicationRepo, MedicationLogrepo logRepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public DoctorController(Userrepo userRepo, Medicationrepo medicationRepo, MedicationLogrepo logRepo, DoctorPatientAssignmentrepo assignmentRepo) {
         this.userRepo = userRepo;
         this.medicationRepo = medicationRepo;
         this.logRepo = logRepo;

@@ -15,10 +15,10 @@ import java.util.stream.Collectors;
 public class LogController {
 
     private final MedicationLogrepo repo;
-    private final Databaserepo userRepo;
+    private final Userrepo userRepo;
     private final DoctorPatientAssignmentrepo assignmentRepo;
 
-    public LogController(MedicationLogrepo repo, Databaserepo userRepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public LogController(MedicationLogrepo repo, Userrepo userRepo, DoctorPatientAssignmentrepo assignmentRepo) {
         this.repo = repo;
         this.userRepo = userRepo;
         this.assignmentRepo = assignmentRepo;
