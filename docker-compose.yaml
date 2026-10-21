@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mymeds
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_password
+      POSTGRES_DB: mymeds
+    secrets:
+      - db_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  cloudflared:
+    container_name: cloudflared
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    networks:
+     - proxy
+    environment:
+     - TUNNEL_TOKEN_FILE=/run/secrets/tunnel_token
+    secrets:
+      - tunnel_token
+  frontend:
+    build: frontend
+    networks:
+      - proxy
+secrets:
+  db_password:
+    file: ~/mymedz/db.pass
+  tunnel_token:
+    file: ~/mymedz/tunnel.token
+  
+volumes:
+  pgdata:
+networks:
+  proxy:
