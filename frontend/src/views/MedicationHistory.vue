@@ -1,3 +1,47 @@
+<script setup>
+import {
+  onMounted,
+  ref,
+} from 'vue'
+
+import {
+  getMedicationHistory,
+} from '../services/api'
+
+async function loadHistory() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    events.value =
+      await getMedicationHistory()
+  } catch (err) {
+    console.error(
+      'Could not load medication history:',
+      err
+    )
+
+    error.value =
+      'Medication history could not be loaded.'
+  } finally {
+    loading.value = false
+  }
+}
+
+function statusClass(status) {
+  return String(
+    status || ''
+  ).toLowerCase()
+}
+
+const events = ref([])
+
+const loading = ref(true)
+const error = ref('')
+
+onMounted(loadHistory)
+</script>
+
 <template>
   <section>
     <h1 class="page-title">
@@ -12,7 +56,24 @@
       Recent Events
     </h2>
 
-    <div class="table-card">
+    <p
+      v-if="loading"
+      class="loading-message"
+    >
+      Loading medication history...
+    </p>
+
+    <p
+      v-else-if="error"
+      class="error-message"
+    >
+      {{ error }}
+    </p>
+
+    <div
+      v-else-if="events.length"
+      class="table-card"
+    >
       <table>
         <thead>
           <tr>
@@ -42,15 +103,20 @@
             </td>
 
             <td>
-              {{ event.dose }}
+              {{ event.dose || '—' }}
             </td>
 
             <td>
               <span
                 class="status-badge"
-                :class="statusClass(event.status)"
+                :class="
+                  statusClass(
+                    event.status
+                  )
+                "
               >
                 <span class="status-dot"></span>
+
                 {{ event.status }}
               </span>
             </td>
@@ -58,44 +124,12 @@
         </tbody>
       </table>
     </div>
+
+    <p
+      v-else
+      class="empty-message"
+    >
+      No medication history is available.
+    </p>
   </section>
 </template>
-
-<script setup>
-import { onMounted, ref } from 'vue'
-import { getMedicationHistory } from '../services/api'
-
-const events = ref([])
-
-const demoEvents = [
-  {
-    id: 1,
-    patient: 'Patient A',
-    medication: 'Medication 1',
-    time: '09:00',
-    dose: '1 tablet',
-    status: 'Taken',
-  },
-  {
-    id: 2,
-    patient: 'Patient A',
-    medication: 'Medication 1',
-    time: '13:00',
-    dose: '1 tablet',
-    status: 'Scheduled',
-  },
-]
-
-function statusClass(status) {
-  return status?.toLowerCase() ?? ''
-}
-
-onMounted(async () => {
-  try {
-    events.value = await getMedicationHistory()
-  } catch {
-    // fallback until logging API is connected
-    events.value = demoEvents
-  }
-})
-</script>

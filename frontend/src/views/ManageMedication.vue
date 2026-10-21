@@ -1,21 +1,159 @@
+<script setup>
+import {
+  onMounted,
+  reactive,
+  ref,
+} from 'vue'
+
+import {
+  useRoute,
+  useRouter,
+} from 'vue-router'
+
+import {
+  getMedication,
+  updateMedication,
+} from '../services/api'
+
+async function loadMedication() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const data =
+      await getMedication(
+        route.params.patientId,
+        route.params.medicationId
+      )
+
+    patientName.value =
+      data.patientName || ''
+
+    medication.name =
+      data.name || ''
+
+    medication.dosage =
+      data.dosage || ''
+
+    medication.time =
+      data.time || ''
+
+    medication.frequency =
+      data.frequency || ''
+  } catch (err) {
+    console.error(
+      'Could not load medication:',
+      err
+    )
+
+    error.value =
+      'Medication information could not be loaded.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function saveMedication() {
+  saving.value = true
+  saved.value = false
+  error.value = ''
+
+  try {
+    await updateMedication(
+      route.params.patientId,
+      route.params.medicationId,
+      {
+        name: medication.name,
+        dosage: medication.dosage,
+        time: medication.time,
+        frequency:
+          medication.frequency,
+      }
+    )
+
+    saved.value = true
+
+    await loadMedication()
+  } catch (err) {
+    console.error(
+      'Could not update medication:',
+      err
+    )
+
+    error.value =
+      err.message ||
+      'Medication could not be updated.'
+  } finally {
+    saving.value = false
+  }
+}
+
+function goBack() {
+  router.push(
+    `/doctor/patients/${route.params.patientId}`
+  )
+}
+
+const route = useRoute()
+const router = useRouter()
+
+const patientName = ref('')
+
+const loading = ref(true)
+const saving = ref(false)
+
+const saved = ref(false)
+const error = ref('')
+
+const medication = reactive({
+  name: '',
+  dosage: '',
+  time: '',
+  frequency: '',
+})
+
+onMounted(loadMedication)
+</script>
+
 <template>
   <section>
-    <RouterLink
-      :to="`/doctor/patients/${route.params.patientId}`"
+    <button
+      type="button"
       class="back-link"
+      @click="goBack"
     >
       ← Back to Patient Details
-    </RouterLink>
+    </button>
 
     <h1 class="page-title">
       Manage Medication
     </h1>
 
     <p class="page-subtitle">
-      Update the medication schedule for {{ patientName }}.
+      Update the medication schedule
+      <template v-if="patientName">
+        for {{ patientName }}
+      </template>.
     </p>
 
-    <div class="medication-form-card">
+    <p
+      v-if="loading"
+      class="loading-message"
+    >
+      Loading medication...
+    </p>
+
+    <p
+      v-else-if="error"
+      class="error-message"
+    >
+      {{ error }}
+    </p>
+
+    <div
+      v-else
+      class="medication-form-card"
+    >
       <h2>
         Medication Schedule
       </h2>
@@ -23,11 +161,12 @@
       <form @submit.prevent="saveMedication">
         <div class="form-content">
           <div class="form-group">
-            <label>
+            <label for="medication-name">
               Medication Name
             </label>
 
             <input
+              id="medication-name"
               v-model="medication.name"
               type="text"
               required
@@ -35,11 +174,12 @@
           </div>
 
           <div class="form-group">
-            <label>
+            <label for="medication-dosage">
               Dosage
             </label>
 
             <input
+              id="medication-dosage"
               v-model="medication.dosage"
               type="text"
               required
@@ -47,11 +187,12 @@
           </div>
 
           <div class="form-group">
-            <label>
+            <label for="medication-time">
               Scheduled Time
             </label>
 
             <input
+              id="medication-time"
               v-model="medication.time"
               type="time"
               required
@@ -59,11 +200,12 @@
           </div>
 
           <div class="form-group">
-            <label>
+            <label for="medication-frequency">
               Frequency
             </label>
 
             <select
+              id="medication-frequency"
               v-model="medication.frequency"
               required
             >
@@ -96,102 +238,30 @@
               class="primary-button"
               :disabled="saving"
             >
-              {{ saving ? 'Saving...' : 'Save Changes' }}
+              {{
+                saving
+                  ? 'Saving...'
+                  : 'Save Changes'
+              }}
             </button>
 
-            <RouterLink
-              :to="`/doctor/patients/${route.params.patientId}`"
+            <button
+              type="button"
               class="secondary-button"
+              @click="goBack"
             >
               Cancel
-            </RouterLink>
+            </button>
           </div>
         </div>
       </form>
     </div>
 
-    <div
+    <p
       v-if="saved"
       class="success-message"
     >
       Medication changes saved.
-    </div>
+    </p>
   </section>
 </template>
-
-<script setup>
-import { onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
-
-import {
-  getMedication,
-  updateMedication,
-} from '../services/api'
-
-const route = useRoute()
-
-const patientName = ref('Patient A')
-const saving = ref(false)
-const saved = ref(false)
-
-const medication = reactive({
-  name: '',
-  dosage: '',
-  time: '',
-  frequency: '',
-})
-
-const demoMedication = {
-  patientName: 'Patient A',
-  name: 'Medication 1',
-  dosage: '1 tablet',
-  time: '13:00',
-  frequency: 'Once daily',
-}
-
-function loadMedicationData(data) {
-  patientName.value = data.patientName ?? 'Patient A'
-  medication.name = data.name ?? ''
-  medication.dosage = data.dosage ?? ''
-  medication.time = data.time ?? ''
-  medication.frequency = data.frequency ?? ''
-}
-
-onMounted(async () => {
-  try {
-    const data = await getMedication(
-      route.params.patientId,
-      route.params.medicationId,
-    )
-
-    loadMedicationData(data)
-  } catch {
-    // Temporary fallback until backend integration is complete
-    loadMedicationData(demoMedication)
-  }
-})
-
-async function saveMedication() {
-  saving.value = true
-  saved.value = false
-
-  try {
-    await updateMedication(
-      route.params.patientId,
-      route.params.medicationId,
-      {
-        name: medication.name,
-        dosage: medication.dosage,
-        time: medication.time,
-        frequency: medication.frequency,
-      },
-    )
-
-    saved.value = true
-  } catch {
-    alert('Medication could not be updated.')
-  } finally {
-    saving.value = false
-  }
-}
-</script>

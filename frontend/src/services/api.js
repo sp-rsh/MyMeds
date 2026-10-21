@@ -1,51 +1,88 @@
 const API_BASE = '/api'
 
 let authHeader = null
+let currentUsername = null
+let currentUser = null
 
-
-
-export async function login(username, password) {
-  const encodedCredentials = btoa(`${username}:${password}`)
-
-  const response = await fetch(`${API_BASE}/home`, {
-    headers: {
-      Authorization: `Basic ${encodedCredentials}`,
-    },
-  })
-
-  if (!response.ok) {
-    const error = new Error(`Login failed: ${response.status}`)
-    error.status = response.status
-    throw error
-  }
-
-  authHeader = `Basic ${encodedCredentials}`
-
-  return response.text()
-}
-
-
-async function request(url, options = {}) {
-  const response = await fetch(`${API_BASE}${url}`, {
-    ...options,
-
-    headers: {
-      'Content-Type': 'application/json',
-
-      ...(authHeader && {
-        Authorization: authHeader,
-      }),
-
-      ...options.headers,
-    },
-  })
-
-  if (!response.ok) {
-    const error = new Error(
-      `Request failed: ${response.status}`
+function encodeBasicCredentials(
+  username,
+  password
+) {
+  const bytes =
+    new TextEncoder().encode(
+      `${username}:${password}`
     )
 
-    error.status = response.status
+  let binary = ''
+
+  for (const byte of bytes) {
+    binary +=
+      String.fromCharCode(byte)
+  }
+
+  return `Basic ${btoa(binary)}`
+}
+
+async function request(
+  url,
+  options = {}
+) {
+  const response = await fetch(
+    `${API_BASE}${url}`,
+    {
+      ...options,
+
+      headers: {
+        'Content-Type':
+          'application/json',
+
+        ...(authHeader && {
+          Authorization:
+            authHeader,
+        }),
+
+        ...options.headers,
+      },
+    }
+  )
+
+  if (!response.ok) {
+    let message =
+      `Request failed: ${response.status}`
+
+    try {
+      const contentType =
+        response.headers.get(
+          'content-type'
+        )
+
+      if (
+        contentType?.includes(
+          'application/json'
+        )
+      ) {
+        const body =
+          await response.json()
+
+        message =
+          body.message ??
+          message
+      } else {
+        const body =
+          await response.text()
+
+        if (body) {
+          message = body
+        }
+      }
+    } catch {
+    }
+
+    const error =
+      new Error(message)
+
+    error.status =
+      response.status
 
     throw error
   }
@@ -55,11 +92,14 @@ async function request(url, options = {}) {
   }
 
   const contentType =
-    response.headers.get('content-type')
+    response.headers.get(
+      'content-type'
+    )
 
   if (
-    contentType &&
-    contentType.includes('application/json')
+    contentType?.includes(
+      'application/json'
+    )
   ) {
     return response.json()
   }
@@ -67,128 +107,161 @@ async function request(url, options = {}) {
   return response.text()
 }
 
+export async function login(
+  username,
+  password
+) {
+  const header =
+    encodeBasicCredentials(
+      username,
+      password
+    )
 
-export function getCurrentUser() {
-  return request('/users/me')
+  const response = await fetch(
+    `${API_BASE}/home`,
+    {
+      headers: {
+        Authorization: header,
+      },
+    }
+  )
+
+  if (!response.ok) {
+    const error =
+      new Error(
+        'Invalid username or password.'
+      )
+
+    error.status =
+      response.status
+
+    throw error
+  }
+
+  authHeader = header
+  currentUsername = username
+
+  currentUser =
+    await getCurrentUser()
+
+  return currentUser
 }
 
-
-export async function getPatientMedications() {
-  const result = await request('/medications/my')
-
-  const medications =
-    Array.isArray(result)
-      ? result
-      : Array.isArray(result?.content)
-        ? result.content
-        : Array.isArray(result?.medications)
-          ? result.medications
-          : []
-
-  return medications.map((medication, index) => ({
-    ...medication,
-
-    id:
-      medication.id ??
-      medication.medicationId ??
-      medication.name ??
-      medication.medicationName ??
-      `medication-${index}`,
-
-    name:
-      medication.name ??
-      medication.medicationName ??
-      'Medication',
-
-    dosage:
-      medication.dosage ??
-      '',
-
-    time:
-      String(
-        medication.time ??
-        medication.scheduledTime ??
-        ''
-      ).slice(0, 5),
-
-    frequency:
-      medication.frequency ??
-      'Once daily',
-
-    status:
-      medication.status ??
-      '',
-  }))
+export function logout() {
+  authHeader = null
+  currentUsername = null
+  currentUser = null
 }
 
+export function getAuthenticatedUser() {
+  return currentUser
+}
+
+export async function getCurrentUser() {
+  const user =
+    await request('/users/me')
+
+  currentUser = user
+
+  return user
+}
+
+export async function changePassword(
+  oldPassword,
+  newPassword
+) {
+  const result =
+    await request(
+      '/reset-password',
+      {
+        method: 'POST',
+
+        body: JSON.stringify({
+          oldPassword,
+          newPassword,
+        }),
+      }
+    )
+
+  if (currentUsername) {
+    authHeader =
+      encodeBasicCredentials(
+        currentUsername,
+        newPassword
+      )
+  }
+
+  return result
+}
+
+export function getPatientMedications() {
+  return request(
+    '/medications/my'
+  )
+}
 
 export function getPatientLogs() {
   return request('/logs')
 }
 
-
 export function getPatientAlerts() {
   return request('/alerts')
 }
-
-
-export function changePassword(
-  oldPassword,
-  newPassword
-) {
-  return request('/reset-password', {
-    method: 'POST',
-
-    body: JSON.stringify({
-      oldPassword,
-      newPassword,
-    }),
-  })
-}
-
-
 
 export function getCurrentDoctor() {
   return request('/doctor/me')
 }
 
-
 export function getDoctorDashboard() {
-  return request('/doctor/dashboard')
-}
-
-
-export function getDoctorPatients() {
-  return request('/doctor/patients')
-}
-
-
-export function getPatient(patientId) {
   return request(
-    `/doctor/patients/${encodeURIComponent(patientId)}`
+    '/doctor/dashboard'
   )
 }
 
+export function getDoctorPatients() {
+  return request(
+    '/doctor/patients'
+  )
+}
+
+export function getPatient(
+  patientId
+) {
+  return request(
+    `/doctor/patients/${encodeURIComponent(
+      patientId
+    )}`
+  )
+}
 
 export function getMedication(
   patientId,
   medicationId
 ) {
   return request(
-    `/doctor/patients/${encodeURIComponent(patientId)}` +
-    `/medications/${encodeURIComponent(medicationId)}`
+    `/doctor/patients/${encodeURIComponent(
+      patientId
+    )}` +
+    `/medications/${encodeURIComponent(
+      medicationId
+    )}`
   )
 }
 
+export function addMedication(
+  medication
+) {
+  return request(
+    '/medications',
+    {
+      method: 'POST',
 
-export function addMedication(medication) {
-  return request('/medications', {
-    method: 'POST',
-
-    body: JSON.stringify(medication),
-  })
+      body: JSON.stringify(
+        medication
+      ),
+    }
+  )
 }
-
 
 export function updateMedication(
   patientId,
@@ -196,71 +269,100 @@ export function updateMedication(
   medication
 ) {
   return request(
-    `/doctor/patients/${encodeURIComponent(patientId)}` +
-    `/medications/${encodeURIComponent(medicationId)}`,
+    `/doctor/patients/${encodeURIComponent(
+      patientId
+    )}` +
+    `/medications/${encodeURIComponent(
+      medicationId
+    )}`,
     {
       method: 'PUT',
 
-      body: JSON.stringify(medication),
+      body: JSON.stringify(
+        medication
+      ),
     }
   )
 }
-
 
 export function removeMedication(
   patientId,
   medicationId
 ) {
   return request(
-    `/doctor/patients/${encodeURIComponent(patientId)}` +
-    `/medications/${encodeURIComponent(medicationId)}`,
+    `/doctor/patients/${encodeURIComponent(
+      patientId
+    )}` +
+    `/medications/${encodeURIComponent(
+      medicationId
+    )}`,
     {
       method: 'DELETE',
     }
   )
 }
 
-
 export function getMedicationHistory() {
-  return request('/doctor/medication-history')
+  return request(
+    '/doctor/medication-history'
+  )
 }
 
-
-
-export function getAdminUsers(role) {
+export function getAdminUsers(
+  role
+) {
   const query =
-    role && role !== 'ALL'
-      ? `?role=${encodeURIComponent(role)}`
+    role &&
+    role !== 'ALL'
+      ? `?role=${encodeURIComponent(
+          role
+        )}`
       : ''
 
-  return request(`/users${query}`)
-}
-
-
-export function registerUser(user) {
-  return request('/users/register', {
-    method: 'POST',
-
-    body: JSON.stringify(user),
-  })
-}
-
-
-export function updateAdminUser(id, user) {
   return request(
-    `/users/${encodeURIComponent(id)}`,
-    {
-      method: 'PUT',
+    `/users${query}`
+  )
+}
 
-      body: JSON.stringify(user),
+export function registerUser(
+  user
+) {
+  return request(
+    '/users/register',
+    {
+      method: 'POST',
+
+      body:
+        JSON.stringify(user),
     }
   )
 }
 
-
-export function updateAdminUserRole(id, role) {
+export function updateAdminUser(
+  id,
+  user
+) {
   return request(
-    `/users/${encodeURIComponent(id)}/role`,
+    `/users/${encodeURIComponent(
+      id
+    )}`,
+    {
+      method: 'PUT',
+
+      body:
+        JSON.stringify(user),
+    }
+  )
+}
+
+export function updateAdminUserRole(
+  id,
+  role
+) {
+  return request(
+    `/users/${encodeURIComponent(
+      id
+    )}/role`,
     {
       method: 'PATCH',
 
@@ -271,13 +373,14 @@ export function updateAdminUserRole(id, role) {
   )
 }
 
-
 export function updateAdminUserStatus(
   id,
   active
 ) {
   return request(
-    `/users/${encodeURIComponent(id)}/status`,
+    `/users/${encodeURIComponent(
+      id
+    )}/status`,
     {
       method: 'PATCH',
 
@@ -288,23 +391,24 @@ export function updateAdminUserStatus(
   )
 }
 
-
-
 export function getDoctorAssignedPatients(
   doctorId
 ) {
   return request(
-    `/users/${encodeURIComponent(doctorId)}/patients`
+    `/users/${encodeURIComponent(
+      doctorId
+    )}/patients`
   )
 }
-
 
 export function updateDoctorPatientAssignments(
   doctorId,
   patientIds
 ) {
   return request(
-    `/users/${encodeURIComponent(doctorId)}/patients`,
+    `/users/${encodeURIComponent(
+      doctorId
+    )}/patients`,
     {
       method: 'PUT',
 
@@ -312,5 +416,11 @@ export function updateDoctorPatientAssignments(
         patientIds,
       }),
     }
+  )
+}
+
+export function getSecurityLogs() {
+  return request(
+    '/admin/security-logs'
   )
 }

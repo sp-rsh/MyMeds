@@ -1,238 +1,125 @@
-<template>
-  <aside class="sidebar">
-    <div>
-      <div class="brand">
-        <div class="brand-circle"></div>
-        <h1>MyMeds</h1>
-      </div>
-
-      <p class="portal-label">
-        Patient Portal
-      </p>
-
-      <div class="sidebar-divider"></div>
-
-      <p class="menu-label">
-        MENU
-      </p>
-
-      <nav class="sidebar-nav">
-        <RouterLink
-          to="/patient"
-          class="nav-item"
-        >
-          <LayoutDashboard :size="21" />
-          <span>Dashboard</span>
-        </RouterLink>
-
-        <RouterLink
-          to="/patient/medications"
-          class="nav-item"
-        >
-          <Pill :size="21" />
-          <span>My Medications</span>
-        </RouterLink>
-
-        <RouterLink
-          to="/patient/history"
-          class="nav-item"
-        >
-          <History :size="21" />
-          <span>Medication History</span>
-        </RouterLink>
-
-        <RouterLink
-          to="/patient/profile"
-          class="nav-item"
-        >
-          <UserCircle :size="21" />
-          <span>My Profile</span>
-        </RouterLink>
-      </nav>
-    </div>
-
-    <button
-      class="logout-button"
-      type="button"
-    >
-      <LogOut :size="21" />
-      <span>Logout</span>
-    </button>
-  </aside>
-</template>
-
 <script setup>
+import { useRouter } from 'vue-router'
+
 import {
-  LayoutDashboard,
+  House,
   Pill,
   History,
   UserCircle,
   LogOut,
 } from '@lucide/vue'
+
+import {
+  logout,
+} from '../services/api'
+
+
+function handleLogout() {
+  logout()
+  router.push('/login')
+}
+
+
+const router = useRouter()
 </script>
 
-<style scoped>
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
 
-  width: 280px;
-  height: 100vh;
+<template>
+  <aside class="sidebar">
 
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+    <div>
 
-  padding: 30px 22px;
+      <div class="brand">
 
-  background: #ffffff;
-  border-right: 1px solid #e2e8f0;
+        <div class="brand-circle"></div>
 
-  z-index: 100;
-}
+        <h1>
+          MyMeds
+        </h1>
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+      </div>
 
-  padding: 0 8px;
-}
 
-.brand-circle {
-  width: 12px;
-  height: 12px;
+      <p class="portal-label">
+        Patient Portal
+      </p>
 
-  border-radius: 50%;
 
-  background: #2563eb;
-}
+      <div class="sidebar-divider"></div>
 
-.brand h1 {
-  margin: 0;
 
-  color: #172033;
+      <p class="menu-label">
+        MENU
+      </p>
 
-  font-size: 22px;
-  font-weight: 700;
-}
 
-.portal-label {
-  margin: 8px 8px 22px;
+      <nav class="sidebar-nav">
 
-  color: #64748b;
+        <RouterLink
+          to="/patient"
+          class="nav-item"
+        >
+          <House
+            :size="22"
+            class="nav-icon"
+          />
 
-  font-size: 14px;
-  font-weight: 500;
-}
+          Home
+        </RouterLink>
 
-.sidebar-divider {
-  height: 1px;
 
-  margin: 0 8px 24px;
+        <RouterLink
+          to="/patient/medications"
+          class="nav-item"
+        >
+          <Pill
+            :size="22"
+            class="nav-icon"
+          />
 
-  background: #e2e8f0;
-}
+          My Medications
+        </RouterLink>
 
-.menu-label {
-  margin: 0 8px 12px;
 
-  color: #94a3b8;
+        <RouterLink
+          to="/patient/history"
+          class="nav-item"
+        >
+          <History
+            :size="22"
+            class="nav-icon"
+          />
 
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
+          History
+        </RouterLink>
 
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
 
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 13px;
+        <RouterLink
+          to="/patient/profile"
+          class="nav-item"
+        >
+          <UserCircle
+            :size="22"
+            class="nav-icon"
+          />
 
-  width: 100%;
+          My Profile
+        </RouterLink>
 
-  padding: 12px 13px;
+      </nav>
 
-  border-radius: 8px;
+    </div>
 
-  color: #64748b;
 
-  text-decoration: none;
+    <button
+      type="button"
+      class="logout-button"
+      @click="handleLogout"
+    >
+      <LogOut :size="22" />
 
-  font-size: 14px;
-  font-weight: 500;
+      Log out
+    </button>
 
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.nav-item:hover {
-  background: #f1f5f9;
-  color: #172033;
-}
-
-.nav-item.router-link-active {
-  background: #eff6ff;
-  color: #2563eb;
-
-  font-weight: 600;
-}
-
-.nav-item :deep(svg) {
-  flex-shrink: 0;
-}
-
-.logout-button {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-
-  width: 100%;
-
-  padding: 12px 13px;
-
-  border: none;
-  border-radius: 8px;
-
-  background: transparent;
-
-  color: #64748b;
-
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-
-  text-align: left;
-
-  cursor: pointer;
-}
-
-.logout-button:hover {
-  background: #f1f5f9;
-  color: #dc2626;
-}
-
-.logout-button :deep(svg) {
-  flex-shrink: 0;
-}
-
-@media (max-width: 700px) {
-  .sidebar {
-    position: relative;
-
-    width: 100%;
-    height: auto;
-
-    border-right: none;
-    border-bottom: 1px solid #e2e8f0;
-  }
-}
-</style>
+  </aside>
+</template>
