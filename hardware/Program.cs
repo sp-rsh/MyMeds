@@ -12,7 +12,7 @@ class Program
     DateTime lastServerUpdate;
     Program()
     {
-        CONFIG = new(Path.Combine(AppContext.BaseDirectory, "config.xml"));
+        CONFIG = new("~/mymedz/config.xml");
         API = new(CONFIG);
         fpSensor = new(CONFIG.FINGERPRINT_PORT);
         servos = new Servo[CONFIG.SERVO_PINS.Length];
