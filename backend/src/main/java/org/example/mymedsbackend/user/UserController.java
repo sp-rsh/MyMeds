@@ -3,7 +3,7 @@ package org.example.mymedsbackend.user;
 import org.example.mymedsbackend.medication.MedicationLog;
 import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
-import org.example.mymedsbackend.medication.Medications;
+import org.example.mymedsbackend.medication.Medication;
 import org.example.mymedsbackend.security.ResetPassword;
 import org.example.mymedsbackend.security.SecurityLogService;
 import org.springframework.http.HttpStatus;
@@ -32,7 +32,7 @@ public class UserController {
     private final PasswordEncoder passwordEncoder;
     private final MedicationRepo medicationRepo;
     private final MedicationLogRepo logRepo;
-    private final DoctorPatientAssignmentrepo assignmentRepo;
+    private final DoctorPatientAssignmentRepo assignmentRepo;
     private final SecurityLogService securityLog;
 
     public UserController(
@@ -40,7 +40,7 @@ public class UserController {
             PasswordEncoder passwordEncoder,
             MedicationRepo medicationRepo,
             MedicationLogRepo logRepo,
-            DoctorPatientAssignmentrepo assignmentRepo,
+            DoctorPatientAssignmentRepo assignmentRepo,
             SecurityLogService securityLog) {
         this.repo = repo;
         this.passwordEncoder = passwordEncoder;
@@ -279,7 +279,7 @@ public class UserController {
             clearAssignments(user);
         }
         if (!previousUsername.equals(username)) {
-            List<Medications> medicines = medicationRepo.findByPatientUsername(previousUsername);
+            List<Medication> medicines = medicationRepo.findByPatientUsername(previousUsername);
             medicines.forEach(medicine -> medicine.setPatientUsername(username));
             medicationRepo.saveAll(medicines);
             List<MedicationLog> logs = logRepo.findByPatientUsernameOrderByEventTimeDesc(previousUsername);

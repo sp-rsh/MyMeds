@@ -2,7 +2,7 @@ package org.example.mymedsbackend.medication;
 
 import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.DoctorPatientAssignment;
-import org.example.mymedsbackend.user.DoctorPatientAssignmentrepo;
+import org.example.mymedsbackend.user.DoctorPatientAssignmentRepo;
 import org.example.mymedsbackend.user.UserRepo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,9 +20,9 @@ public class LogController {
 
     private final MedicationLogRepo repo;
     private final UserRepo userRepo;
-    private final DoctorPatientAssignmentrepo assignmentRepo;
+    private final DoctorPatientAssignmentRepo assignmentRepo;
 
-    public LogController(MedicationLogRepo repo, UserRepo userRepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public LogController(MedicationLogRepo repo, UserRepo userRepo, DoctorPatientAssignmentRepo assignmentRepo) {
         this.repo = repo;
         this.userRepo = userRepo;
         this.assignmentRepo = assignmentRepo;

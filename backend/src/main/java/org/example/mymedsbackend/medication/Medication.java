@@ -7,7 +7,7 @@ import jakarta.persistence.Id;
 import java.time.LocalTime;
 
 @Entity
-public class Medications {
+public class Medication {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -61,7 +61,7 @@ public class Medications {
         this.scheduledTime = scheduledTime;
     }
 
-    public int getTowersToDispense() {
+    public int getTowerToDispense() {
         return towerToDispense;
     }
 

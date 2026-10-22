@@ -3,7 +3,7 @@ package org.example.mymedsbackend.user;
 import org.example.mymedsbackend.medication.MedicationLog;
 import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
-import org.example.mymedsbackend.medication.Medications;
+import org.example.mymedsbackend.medication.Medication;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,7 +35,7 @@ public class AlertController {
             @AuthenticationPrincipal UserDetails user) {
 
         String username = user.getUsername();
-        List<Medications> medications = medicationRepo.findByPatientUsername(username);
+        List<Medication> medications = medicationRepo.findByPatientUsername(username);
         List<Map<String, Object>> alerts = new ArrayList<>();
 
         LocalDate today = LocalDate.now();
@@ -49,7 +49,7 @@ public class AlertController {
                         LocalDateTime.now()
                 );
 
-        for (Medications medication : medications) {
+        for (Medication medication : medications) {
             LocalTime scheduledTime = medication.getScheduledTime();
 
             if (scheduledTime == null || !currentTime.isAfter(scheduledTime)) {

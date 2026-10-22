@@ -1,10 +1,5 @@
 <script setup>
-import {
-  computed,
-  onMounted,
-  reactive,
-  ref,
-} from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 import {
   getAdminUsers,
@@ -20,13 +15,9 @@ async function loadUsers() {
   try {
     users.value = await getAdminUsers()
   } catch (err) {
-    console.error(
-      'Could not load users:',
-      err
-    )
+    console.error('Could not load users:', err)
 
-    error.value =
-      'Users could not be loaded.'
+    error.value = 'Users could not be loaded.'
   } finally {
     loading.value = false
   }
@@ -52,8 +43,7 @@ function openEditUser(user) {
   form.email = user.email || ''
   form.password = ''
   form.role = user.role || 'PATIENT'
-  form.specialization =
-    user.specialization || ''
+  form.specialization = user.specialization || ''
 
   formError.value = ''
   showForm.value = true
@@ -68,33 +58,20 @@ function closeForm() {
 async function saveUser() {
   formError.value = ''
 
-  if (
-    !form.username.trim() ||
-    !form.email.trim()
-  ) {
-    formError.value =
-      'Username and email are required.'
+  if (!form.username.trim() || !form.email.trim()) {
+    formError.value = 'Username and email are required.'
 
     return
   }
 
-  if (
-    !editingUser.value &&
-    form.password.length < 8
-  ) {
-    formError.value =
-      'Password must contain at least 8 characters.'
+  if (!editingUser.value && form.password.length < 8) {
+    formError.value = 'Password must contain at least 8 characters.'
 
     return
   }
 
-  if (
-    editingUser.value &&
-    form.password &&
-    form.password.length < 8
-  ) {
-    formError.value =
-      'New password must contain at least 8 characters.'
+  if (editingUser.value && form.password && form.password.length < 8) {
+    formError.value = 'New password must contain at least 8 characters.'
 
     return
   }
@@ -107,46 +84,30 @@ async function saveUser() {
         username: form.username.trim(),
         email: form.email.trim(),
         role: form.role,
-        specialization:
-          form.role === 'DOCTOR'
-            ? form.specialization.trim() || null
-            : null,
+        specialization: form.role === 'DOCTOR' ? form.specialization.trim() || null : null,
       }
 
       if (form.password) {
         user.password = form.password
       }
 
-      await updateAdminUser(
-        editingUser.value.id,
-        user
-      )
+      await updateAdminUser(editingUser.value.id, user)
     } else {
       await registerUser({
         username: form.username.trim(),
         email: form.email.trim(),
         password: form.password,
         role: form.role,
-        specialization:
-          form.role === 'DOCTOR'
-            ? form.specialization.trim() || null
-            : null,
+        specialization: form.role === 'DOCTOR' ? form.specialization.trim() || null : null,
       })
     }
 
     closeForm()
     await loadUsers()
-
   } catch (err) {
-    console.error(
-      'Could not save user:',
-      err
-    )
+    console.error('Could not save user:', err)
 
-    formError.value =
-      err.message ||
-      'User could not be saved.'
-
+    formError.value = err.message || 'User could not be saved.'
   } finally {
     saving.value = false
   }
@@ -156,22 +117,13 @@ async function toggleStatus(user) {
   error.value = ''
 
   try {
-    await updateAdminUserStatus(
-      user.id,
-      !user.active
-    )
+    await updateAdminUserStatus(user.id, !user.active)
 
     await loadUsers()
-
   } catch (err) {
-    console.error(
-      'Could not update user status:',
-      err
-    )
+    console.error('Could not update user status:', err)
 
-    error.value =
-      err.message ||
-      'Account status could not be changed.'
+    error.value = err.message || 'Account status could not be changed.'
   }
 }
 
@@ -182,11 +134,7 @@ function formatLastLogin(value) {
 
   const date = new Date(value)
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return value
   }
 
@@ -215,26 +163,17 @@ const form = reactive({
 })
 
 const filteredUsers = computed(() => {
-  const value =
-    search.value
-      .trim()
-      .toLowerCase()
+  const value = search.value.trim().toLowerCase()
 
   if (!value) {
     return users.value
   }
 
   return users.value.filter(
-    user =>
-      user.username
-        ?.toLowerCase()
-        .includes(value) ||
-      user.email
-        ?.toLowerCase()
-        .includes(value) ||
-      user.role
-        ?.toLowerCase()
-        .includes(value)
+    (user) =>
+      user.username?.toLowerCase().includes(value) ||
+      user.email?.toLowerCase().includes(value) ||
+      user.role?.toLowerCase().includes(value),
   )
 })
 
@@ -243,49 +182,23 @@ onMounted(loadUsers)
 
 <template>
   <section>
-    <h1 class="page-title">
-      Users
-    </h1>
+    <h1 class="page-title">Users</h1>
 
-    <p class="page-subtitle">
-      Create and manage MyMeds user accounts.
-    </p>
+    <p class="page-subtitle">Create and manage MyMeds user accounts.</p>
 
     <div class="patients-toolbar">
-      <button
-        type="button"
-        class="primary-button"
-        @click="openAddUser"
-      >
-        Add User
-      </button>
+      <button type="button" class="primary-button" @click="openAddUser">Add User</button>
 
-      <input
-        v-model="search"
-        class="search-input"
-        type="text"
-        placeholder="Search users..."
-      />
+      <input v-model="search" class="search-input" type="text" placeholder="Search users..." />
     </div>
 
-    <p
-      v-if="loading"
-      class="loading-message"
-    >
-      Loading users...
-    </p>
+    <p v-if="loading" class="loading-message">Loading users...</p>
 
-    <p
-      v-else-if="error"
-      class="error-message"
-    >
+    <p v-else-if="error" class="error-message">
       {{ error }}
     </p>
 
-    <div
-      v-else
-      class="table-card"
-    >
+    <div v-else class="table-card">
       <table>
         <thead>
           <tr>
@@ -299,10 +212,7 @@ onMounted(loadUsers)
         </thead>
 
         <tbody>
-          <tr
-            v-for="user in filteredUsers"
-            :key="user.id"
-          >
+          <tr v-for="user in filteredUsers" :key="user.id">
             <td class="patient-name">
               {{ user.username }}
             </td>
@@ -316,151 +226,77 @@ onMounted(loadUsers)
             </td>
 
             <td>
-              <span
-                class="status-badge"
-                :class="
-                  user.active
-                    ? 'taken'
-                    : 'missed'
-                "
-              >
+              <span class="status-badge" :class="user.active ? 'taken' : 'missed'">
                 <span class="status-dot"></span>
 
-                {{
-                  user.active
-                    ? 'Active'
-                    : 'Inactive'
-                }}
+                {{ user.active ? 'Active' : 'Inactive' }}
               </span>
             </td>
 
             <td>
-              {{
-                formatLastLogin(
-                  user.lastLoginAt
-                )
-              }}
+              {{ formatLastLogin(user.lastLoginAt) }}
             </td>
 
             <td>
               <div class="action-cell">
-                <button
-                  type="button"
-                  class="primary-button"
-                  @click="openEditUser(user)"
-                >
+                <button type="button" class="primary-button" @click="openEditUser(user)">
                   Edit
                 </button>
 
-                <button
-                  type="button"
-                  class="secondary-button"
-                  @click="toggleStatus(user)"
-                >
-                  {{
-                    user.active
-                      ? 'Deactivate'
-                      : 'Activate'
-                  }}
+                <button type="button" class="secondary-button" @click="toggleStatus(user)">
+                  {{ user.active ? 'Deactivate' : 'Activate' }}
                 </button>
               </div>
             </td>
           </tr>
 
           <tr v-if="filteredUsers.length === 0">
-            <td colspan="6">
-              No users found.
-            </td>
+            <td colspan="6">No users found.</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div
-      v-if="showForm"
-      class="medication-form-card"
-    >
+    <div v-if="showForm" class="medication-form-card">
       <h2>
-        {{
-          editingUser
-            ? 'Edit User'
-            : 'Add User'
-        }}
+        {{ editingUser ? 'Edit User' : 'Add User' }}
       </h2>
 
       <form @submit.prevent="saveUser">
         <div class="form-content">
           <div class="form-group">
-            <label for="username">
-              Username
-            </label>
+            <label for="username"> Username </label>
 
-            <input
-              id="username"
-              v-model="form.username"
-              type="text"
-              required
-            />
+            <input id="username" v-model="form.username" type="text" required />
           </div>
 
           <div class="form-group">
-            <label for="email">
-              Email
-            </label>
+            <label for="email"> Email </label>
 
-            <input
-              id="email"
-              v-model="form.email"
-              type="email"
-              required
-            />
+            <input id="email" v-model="form.email" type="email" required />
           </div>
 
           <div class="form-group">
-            <label for="role">
-              Role
-            </label>
+            <label for="role"> Role </label>
 
-            <select
-              id="role"
-              v-model="form.role"
-            >
-              <option value="PATIENT">
-                Patient
-              </option>
+            <select id="role" v-model="form.role">
+              <option value="PATIENT">Patient</option>
 
-              <option value="DOCTOR">
-                Doctor
-              </option>
+              <option value="DOCTOR">Doctor</option>
 
-              <option value="ADMIN">
-                Admin
-              </option>
+              <option value="ADMIN">Admin</option>
             </select>
           </div>
 
-          <div
-            v-if="form.role === 'DOCTOR'"
-            class="form-group"
-          >
-            <label for="specialization">
-              Specialization
-            </label>
+          <div v-if="form.role === 'DOCTOR'" class="form-group">
+            <label for="specialization"> Specialization </label>
 
-            <input
-              id="specialization"
-              v-model="form.specialization"
-              type="text"
-            />
+            <input id="specialization" v-model="form.specialization" type="text" />
           </div>
 
           <div class="form-group">
             <label for="password">
-              {{
-                editingUser
-                  ? 'New Password'
-                  : 'Password'
-              }}
+              {{ editingUser ? 'New Password' : 'Password' }}
             </label>
 
             <input
@@ -471,45 +307,23 @@ onMounted(loadUsers)
               minlength="8"
             />
 
-            <p
-              v-if="editingUser"
-              class="page-subtitle"
-            >
+            <p v-if="editingUser" class="page-subtitle">
               Leave blank to keep the current password.
             </p>
           </div>
 
-          <p
-            v-if="formError"
-            class="error-message"
-          >
+          <p v-if="formError" class="error-message">
             {{ formError }}
           </p>
         </div>
 
         <div class="form-footer">
           <div class="form-actions">
-            <button
-              type="submit"
-              class="primary-button"
-              :disabled="saving"
-            >
-              {{
-                saving
-                  ? 'Saving...'
-                  : editingUser
-                    ? 'Save Changes'
-                    : 'Create User'
-              }}
+            <button type="submit" class="primary-button" :disabled="saving">
+              {{ saving ? 'Saving...' : editingUser ? 'Save Changes' : 'Create User' }}
             </button>
 
-            <button
-              type="button"
-              class="secondary-button"
-              @click="closeForm"
-            >
-              Cancel
-            </button>
+            <button type="button" class="secondary-button" @click="closeForm">Cancel</button>
           </div>
         </div>
       </form>

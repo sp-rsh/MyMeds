@@ -1,27 +1,14 @@
 <script setup>
-import {
-  computed,
-  onMounted,
-  ref,
-} from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
-import {
-  getCurrentUser,
-  getPatientAlerts,
-  getPatientMedications,
-} from '../services/api'
-
+import { getCurrentUser, getPatientAlerts, getPatientMedications } from '../services/api'
 
 async function loadDashboard() {
   loading.value = true
   error.value = ''
 
   try {
-    const [
-      userData,
-      medicationData,
-      alertData,
-    ] = await Promise.all([
+    const [userData, medicationData, alertData] = await Promise.all([
       getCurrentUser(),
       getPatientMedications(),
       getPatientAlerts(),
@@ -30,21 +17,14 @@ async function loadDashboard() {
     user.value = userData
     medications.value = medicationData
     alerts.value = alertData
-
   } catch (err) {
-    console.error(
-      'Could not load patient dashboard:',
-      err
-    )
+    console.error('Could not load patient dashboard:', err)
 
-    error.value =
-      'Your medication information could not be loaded.'
-
+    error.value = 'Your medication information could not be loaded.'
   } finally {
     loading.value = false
   }
 }
-
 
 function formatTime(value) {
   if (!value) {
@@ -54,21 +34,15 @@ function formatTime(value) {
   return String(value).slice(0, 5)
 }
 
-
 function timeInMinutes(value) {
   if (!value) {
     return Number.MAX_SAFE_INTEGER
   }
 
-  const [hours, minutes] =
-    String(value)
-      .slice(0, 5)
-      .split(':')
-      .map(Number)
+  const [hours, minutes] = String(value).slice(0, 5).split(':').map(Number)
 
   return hours * 60 + minutes
 }
-
 
 const user = ref(null)
 const medications = ref([])
@@ -77,10 +51,8 @@ const alerts = ref([])
 const loading = ref(true)
 const error = ref('')
 
-
 const greeting = computed(() => {
-  const hour =
-    new Date().getHours()
+  const hour = new Date().getHours()
 
   if (hour < 12) {
     return 'Good morning'
@@ -93,158 +65,84 @@ const greeting = computed(() => {
   return 'Good evening'
 })
 
-
 const patientName = computed(() => {
-  return (
-    user.value?.name ??
-    user.value?.username ??
-    ''
-  )
+  return user.value?.name ?? user.value?.username ?? ''
 })
 
-
 const nextMedication = computed(() => {
-  const now =
-    new Date()
+  const now = new Date()
 
-  const currentMinutes =
-    now.getHours() * 60 +
-    now.getMinutes()
+  const currentMinutes = now.getHours() * 60 + now.getMinutes()
 
-  const upcoming =
-    medications.value
-      .filter(
-        medication =>
-          timeInMinutes(
-            medication.scheduledTime
-          ) >= currentMinutes
-      )
-      .sort(
-        (a, b) =>
-          timeInMinutes(a.scheduledTime) -
-          timeInMinutes(b.scheduledTime)
-      )
+  const upcoming = medications.value
+    .filter((medication) => timeInMinutes(medication.scheduledTime) >= currentMinutes)
+    .sort((a, b) => timeInMinutes(a.scheduledTime) - timeInMinutes(b.scheduledTime))
 
   return upcoming[0] ?? null
 })
 
-
 onMounted(loadDashboard)
 </script>
 
-
 <template>
   <section>
-
     <h1 class="page-title">
       {{ greeting }},
       {{ patientName }}
     </h1>
 
-
-    <p class="page-subtitle">
-      Here is your medication information for today.
-    </p>
-
+    <p class="page-subtitle">Here is your medication information for today.</p>
 
     <div v-if="loading">
-      <p class="page-subtitle">
-        Loading your medications...
-      </p>
+      <p class="page-subtitle">Loading your medications...</p>
     </div>
 
-
-    <div
-      v-else-if="error"
-      class="success-message"
-    >
+    <div v-else-if="error" class="success-message">
       {{ error }}
     </div>
 
-
     <template v-else>
-
-      <h2 class="section-title">
-        Today
-      </h2>
-
+      <h2 class="section-title">Today</h2>
 
       <div class="summary-grid">
-
         <div class="summary-card">
-
-          <p class="card-label">
-            My Medications
-          </p>
+          <p class="card-label">My Medications</p>
 
           <h3>
             {{ medications.length }}
           </h3>
 
-          <p>
-            Prescribed medications
-          </p>
-
+          <p>Prescribed medications</p>
         </div>
 
-
         <div class="summary-card">
-
-          <p class="card-label">
-            Missed Doses
-          </p>
+          <p class="card-label">Missed Doses</p>
 
           <h3>
             {{ alerts.length }}
           </h3>
 
-          <p>
-            Doses that may need your attention
-          </p>
-
+          <p>Doses that may need your attention</p>
         </div>
 
-
         <div class="summary-card">
-
-          <p class="card-label">
-            Next Dose
-          </p>
+          <p class="card-label">Next Dose</p>
 
           <h3>
-            {{
-              nextMedication
-                ? formatTime(
-                    nextMedication.scheduledTime
-                  )
-                : '—'
-            }}
+            {{ nextMedication ? formatTime(nextMedication.scheduledTime) : '—' }}
           </h3>
 
           <p>
-            {{
-              nextMedication
-                ? nextMedication.medicationName
-                : 'No more scheduled doses today'
-            }}
+            {{ nextMedication ? nextMedication.medicationName : 'No more scheduled doses today' }}
           </p>
-
         </div>
-
       </div>
 
-
       <template v-if="alerts.length">
-
-        <h2 class="section-title">
-          Needs Attention
-        </h2>
-
+        <h2 class="section-title">Needs Attention</h2>
 
         <div class="table-card">
-
           <table>
-
             <thead>
               <tr>
                 <th>Medication</th>
@@ -253,49 +151,26 @@ onMounted(loadDashboard)
               </tr>
             </thead>
 
-
             <tbody>
-
-              <tr
-                v-for="alert in alerts"
-                :key="alert.medicationId"
-              >
-
+              <tr v-for="alert in alerts" :key="alert.medicationId">
                 <td class="patient-name">
                   {{ alert.medicationName }}
                 </td>
 
                 <td class="bold">
-                  {{
-                    formatTime(
-                      alert.scheduledTime
-                    )
-                  }}
+                  {{ formatTime(alert.scheduledTime) }}
                 </td>
 
                 <td>
                   {{ alert.message }}
                 </td>
-
               </tr>
-
             </tbody>
-
           </table>
-
         </div>
-
       </template>
 
-
-      <div
-        v-else
-        class="success-message"
-      >
-        No missed medication doses require your attention.
-      </div>
-
+      <div v-else class="success-message">No missed medication doses require your attention.</div>
     </template>
-
   </section>
 </template>
