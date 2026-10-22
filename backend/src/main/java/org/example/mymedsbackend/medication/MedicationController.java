@@ -1,14 +1,14 @@
 package org.example.mymedsbackend.medication;
 
-import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.DoctorPatientAssignment;
 import org.example.mymedsbackend.user.DoctorPatientAssignmentRepo;
+import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.UserRepo;
 import org.example.mymedsbackend.util.MedicationUtil;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;

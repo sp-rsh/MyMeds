@@ -1,9 +1,9 @@
 package org.example.mymedsbackend.user;
 
+import org.example.mymedsbackend.medication.Medication;
 import org.example.mymedsbackend.medication.MedicationLog;
 import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
-import org.example.mymedsbackend.medication.Medication;
 import org.example.mymedsbackend.util.MedicationUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +16,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/doctor")
@@ -433,7 +429,6 @@ public class DoctorController {
         }
         return (int) Math.round(taken * 100.0 / expected);
     }
-
 
 
     private String statusFromEvent(String eventType) {

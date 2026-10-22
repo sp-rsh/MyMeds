@@ -1,9 +1,9 @@
 package org.example.mymedsbackend.user;
 
+import org.example.mymedsbackend.medication.Medication;
 import org.example.mymedsbackend.medication.MedicationLog;
 import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
-import org.example.mymedsbackend.medication.Medication;
 import org.example.mymedsbackend.security.ResetPassword;
 import org.example.mymedsbackend.security.SecurityLogService;
 import org.springframework.http.HttpStatus;
@@ -14,8 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
 import java.time.LocalDateTime;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -43,6 +43,24 @@ public class UserController {
         this.logRepo = logRepo;
         this.assignmentRepo = assignmentRepo;
         this.securityLog = securityLog;
+    }
+
+    static String normaliseRole(String role) {
+        String normalised = role == null ? "" : role.trim().toUpperCase(Locale.ROOT);
+        if (normalised.startsWith("ROLE_")) normalised = normalised.substring(5);
+        if (!ROLES.contains(normalised)) {
+            throw new IllegalArgumentException("Role must be ADMIN, DOCTOR, or PATIENT.");
+        }
+        return normalised;
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null || value.isBlank()) return null;
+        return value.trim();
+    }
+
+    private static ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
+        return ResponseEntity.status(status).body(Map.of("message", message));
     }
 
     @GetMapping("/home")
@@ -369,16 +387,6 @@ public class UserController {
         return ResponseEntity.ok("Password updated successfully!");
     }
 
-    static String normaliseRole(String role) {
-        String normalised = role == null ? "" : role.trim().toUpperCase(Locale.ROOT);
-        if (normalised.startsWith("ROLE_")) normalised = normalised.substring(5);
-        if (!ROLES.contains(normalised)) {
-            throw new IllegalArgumentException("Role must be ADMIN, DOCTOR, or PATIENT.");
-        }
-        return normalised;
-    }
-
-
     private UserAdminResponse userResponse(User user) {
         String role = normaliseRole(user.getRole());
         int medicationCount = "PATIENT".equals(role)
@@ -404,14 +412,5 @@ public class UserController {
                 .filter(User::isActive)
                 .filter(user -> "ADMIN".equals(normaliseRole(user.getRole())))
                 .count();
-    }
-
-    private static String trimToNull(String value) {
-        if (value == null || value.isBlank()) return null;
-        return value.trim();
-    }
-
-    private static ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
-        return ResponseEntity.status(status).body(Map.of("message", message));
     }
 }

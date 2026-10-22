@@ -5,13 +5,11 @@ import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.UserRepo;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class DeviceKeyAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
 

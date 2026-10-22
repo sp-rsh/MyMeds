@@ -1,8 +1,8 @@
 package org.example.mymedsbackend.medication;
 
-import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.DoctorPatientAssignment;
 import org.example.mymedsbackend.user.DoctorPatientAssignmentRepo;
+import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.UserRepo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
