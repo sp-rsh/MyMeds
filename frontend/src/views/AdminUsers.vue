@@ -30,7 +30,6 @@ function openAddUser() {
   form.email = ''
   form.password = ''
   form.role = 'PATIENT'
-  form.specialization = ''
 
   formError.value = ''
   showForm.value = true
@@ -43,7 +42,6 @@ function openEditUser(user) {
   form.email = user.email || ''
   form.password = ''
   form.role = user.role || 'PATIENT'
-  form.specialization = user.specialization || ''
 
   formError.value = ''
   showForm.value = true
@@ -84,7 +82,6 @@ async function saveUser() {
         username: form.username.trim(),
         email: form.email.trim(),
         role: form.role,
-        specialization: form.role === 'DOCTOR' ? form.specialization.trim() || null : null,
       }
 
       if (form.password) {
@@ -98,7 +95,6 @@ async function saveUser() {
         email: form.email.trim(),
         password: form.password,
         role: form.role,
-        specialization: form.role === 'DOCTOR' ? form.specialization.trim() || null : null,
       })
     }
 
@@ -159,7 +155,6 @@ const form = reactive({
   email: '',
   password: '',
   role: 'PATIENT',
-  specialization: '',
 })
 
 const filteredUsers = computed(() => {
@@ -286,12 +281,6 @@ onMounted(loadUsers)
 
               <option value="ADMIN">Admin</option>
             </select>
-          </div>
-
-          <div v-if="form.role === 'DOCTOR'" class="form-group">
-            <label for="specialization"> Specialization </label>
-
-            <input id="specialization" v-model="form.specialization" type="text" />
           </div>
 
           <div class="form-group">

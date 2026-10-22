@@ -129,9 +129,7 @@ const filteredDoctors = computed(() => {
 
   return doctors.value.filter(
     (doctor) =>
-      doctor.username?.toLowerCase().includes(value) ||
-      doctor.email?.toLowerCase().includes(value) ||
-      doctor.specialization?.toLowerCase().includes(value),
+      doctor.username?.toLowerCase().includes(value) || doctor.email?.toLowerCase().includes(value),
   )
 })
 
@@ -162,7 +160,6 @@ onMounted(loadDoctors)
           <tr>
             <th>Username</th>
             <th>Email</th>
-            <th>Specialization</th>
             <th>Status</th>
             <th>Last Login</th>
             <th>Patients</th>
@@ -177,10 +174,6 @@ onMounted(loadDoctors)
 
             <td>
               {{ doctor.email }}
-            </td>
-
-            <td>
-              {{ doctor.specialization || 'Not specified' }}
             </td>
 
             <td>

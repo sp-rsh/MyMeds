@@ -107,7 +107,7 @@ public class DoctorController {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", patient.getId());
             row.put("name", patient.getUsername());
-            row.put("patientusername", patient.getUsername());
+            row.put("patientUsername", patient.getUsername());
             row.put("medication", next == null ? "" : next.getMedicationName());
             row.put("nextDose", next == null ? "" : formatTime(next.getScheduledTime()));
             row.put("adherence", adherence(meds, recentLogs));
@@ -167,7 +167,7 @@ public class DoctorController {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("id", patient.getId());
         body.put("name", patient.getUsername());
-        body.put("patientusername", patient.getUsername());
+        body.put("patientUsername", patient.getUsername());
         body.put("username", patient.getUsername());
         body.put("doctorName", doctor.getUsername());
         body.put("status", patientStatus(patient, meds, recentLogs));

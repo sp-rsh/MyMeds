@@ -24,7 +24,7 @@ function openAddMedication() {
   newMedication.name = ''
   newMedication.dosage = ''
   newMedication.time = ''
-  newMedication.towerToDispense = 0;
+  newMedication.towerToDispense = 1;
 
   medicationError.value = ''
   showAddMedication.value = true
@@ -41,7 +41,7 @@ async function addMedicationToPatient() {
 
   try {
     await addMedication({
-      patientusername: patient.value.patientusername,
+      patientUsername: patient.value.patientUsername,
       medicationName: newMedication.name,
       dosage: newMedication.dosage,
       scheduledTime: newMedication.time,
@@ -107,7 +107,7 @@ const newMedication = reactive({
   name: '',
   dosage: '',
   time: '',
-  towerToDispense: 0,
+  towerToDispense: 1,
 })
 
 onMounted(loadPatient)

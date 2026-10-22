@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
 @Service
 public class SecurityLogService {
 
-    private final SecurityLogrepo repo;
-    public SecurityLogService(SecurityLogrepo repo) {
+    private final SecurityLogRepo repo;
+    public SecurityLogService(SecurityLogRepo repo) {
         this.repo = repo;
     }
 

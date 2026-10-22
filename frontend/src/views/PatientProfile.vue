@@ -125,6 +125,14 @@ onMounted(loadProfile)
         </div>
 
         <div class="profile-row">
+          <span> Device Key </span>
+
+          <strong>
+            {{ patient.deviceKey }}
+          </strong>
+        </div>
+
+        <div class="profile-row">
           <span> Doctor </span>
 
           <strong>

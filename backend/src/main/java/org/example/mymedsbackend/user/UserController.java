@@ -14,12 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.LinkedHashSet;
+import java.util.*;
 import java.time.LocalDateTime;
 
 @RestController
@@ -62,6 +57,8 @@ public class UserController {
         }
         user.setLastLoginAt(LocalDateTime.now());
         repo.save(user);
+
+
         securityLog.record("Login", user.getUsername(), "Login", "Success", "Successful authentication");
         return ResponseEntity.ok("Login successful! Welcome to MyMeds API.");
     }
@@ -85,6 +82,8 @@ public class UserController {
         body.put("lastLoginAt", user.getLastLoginAt());
 
         if ("PATIENT".equals(normaliseRole(user.getRole()))) {
+            body.put("deviceKey", user.getDeviceKey());
+
             body.put("doctor", assignmentRepo.findByPatient_Id(user.getId()).stream()
                     .map(a -> a.getDoctor().getUsername())
                     .sorted(String.CASE_INSENSITIVE_ORDER)
@@ -208,11 +207,11 @@ public class UserController {
             return error(HttpStatus.CONFLICT, "That email address is already in use.");
         }
 
-        user.setId(0);
         user.setUsername(username);
         user.setEmail(email);
         user.setRole(role);
         user.setPassword(passwordEncoder.encode(password));
+        user.setDeviceKey(username + "_" + UUID.randomUUID().toString().replace("-", ""));
         user.setActive(true);
         User saved = repo.save(user);
         securityLog.recordAsCurrentUser("Account created", "Account", "Success", role + " account " + saved.getUsername());

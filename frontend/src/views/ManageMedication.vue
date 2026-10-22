@@ -74,7 +74,7 @@ const medication = reactive({
   name: '',
   dosage: '',
   time: '',
-  towerToDispense: 0,
+  towerToDispense: 1,
 })
 
 onMounted(loadMedication)
@@ -126,7 +126,7 @@ onMounted(loadMedication)
             <select id="medication-tower_to_dispense" v-model="medication.towerToDispense" required>
               <option disabled value="">Select tower to dispense</option>
 
-              <option value="1">Tower One</option>
+              <option value="1" >Tower One</option>
 
               <option value="2">Tower Two</option>
 

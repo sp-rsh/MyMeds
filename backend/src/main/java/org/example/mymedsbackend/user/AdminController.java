@@ -1,7 +1,7 @@
 package org.example.mymedsbackend.user;
 
 import org.example.mymedsbackend.security.SecurityLog;
-import org.example.mymedsbackend.security.SecurityLogrepo;
+import org.example.mymedsbackend.security.SecurityLogRepo;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
@@ -11,9 +11,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
-    private final SecurityLogrepo securityLogRepo;
+    private final SecurityLogRepo securityLogRepo;
     public AdminController(
-            SecurityLogrepo securityLogRepo) {
+            SecurityLogRepo securityLogRepo) {
         this.securityLogRepo = securityLogRepo;
 
     }
