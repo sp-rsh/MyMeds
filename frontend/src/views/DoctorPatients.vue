@@ -1,3 +1,69 @@
+<script setup>
+import {
+  computed,
+  onMounted,
+  ref,
+} from 'vue'
+
+import {
+  getDoctorPatients,
+} from '../services/api'
+
+async function loadPatients() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    patients.value =
+      await getDoctorPatients()
+  } catch (err) {
+    console.error(
+      'Could not load patients:',
+      err
+    )
+
+    error.value =
+      'Patients could not be loaded.'
+  } finally {
+    loading.value = false
+  }
+}
+
+function statusClass(status) {
+  if (status === 'Attention') {
+    return 'missed'
+  }
+
+  return 'taken'
+}
+
+const search = ref('')
+const patients = ref([])
+
+const loading = ref(true)
+const error = ref('')
+
+const filteredPatients = computed(() => {
+  const value =
+    search.value
+      .trim()
+      .toLowerCase()
+
+  if (!value) {
+    return patients.value
+  }
+
+  return patients.value.filter(
+    patient =>
+      patient.name
+        ?.toLowerCase()
+        .includes(value)
+  )
+})
+
+onMounted(loadPatients)
+</script>
+
 <template>
   <section>
     <h1 class="page-title">
@@ -21,12 +87,29 @@
       />
     </div>
 
-    <div class="table-card">
+    <p
+      v-if="loading"
+      class="loading-message"
+    >
+      Loading patients...
+    </p>
+
+    <p
+      v-else-if="error"
+      class="error-message"
+    >
+      {{ error }}
+    </p>
+
+    <div
+      v-else
+      class="table-card"
+    >
       <table>
         <thead>
           <tr>
             <th>Patient</th>
-            <th>Current Medication</th>
+            <th>Next Medication</th>
             <th>Next Dose</th>
             <th>Adherence</th>
             <th>Status</th>
@@ -44,11 +127,17 @@
             </td>
 
             <td>
-              {{ patient.medication }}
+              {{
+                patient.medication ||
+                'No medication'
+              }}
             </td>
 
             <td class="bold">
-              {{ patient.nextDose }}
+              {{
+                patient.nextDose ||
+                '—'
+              }}
             </td>
 
             <td class="bold">
@@ -58,9 +147,14 @@
             <td>
               <span
                 class="status-badge"
-                :class="statusClass(patient.status)"
+                :class="
+                  statusClass(
+                    patient.status
+                  )
+                "
               >
                 <span class="status-dot"></span>
+
                 {{ patient.status }}
               </span>
             </td>
@@ -85,51 +179,3 @@
     </div>
   </section>
 </template>
-
-<script setup>
-import { computed, onMounted, ref } from 'vue'
-import { getDoctorPatients } from '../services/api'
-
-const search = ref('')
-const patients = ref([])
-
-const demoPatients = [
-  {
-    id: 1,
-    name: 'Patient A',
-    medication: 'Medication 1',
-    nextDose: '13:00',
-    adherence: 90,
-    status: 'Active',
-  },
-]
-
-const filteredPatients = computed(() => {
-  const value = search.value.trim().toLowerCase()
-
-  if (!value) {
-    return patients.value
-  }
-
-  return patients.value.filter((patient) =>
-    patient.name.toLowerCase().includes(value)
-  )
-})
-
-function statusClass(status) {
-  if (status === 'Attention') {
-    return 'missed'
-  }
-
-  return 'taken'
-}
-
-onMounted(async () => {
-  try {
-    patients.value = await getDoctorPatients()
-  } catch {
-    //  fallback until patient API is connected
-    patients.value = demoPatients
-  }
-})
-</script>

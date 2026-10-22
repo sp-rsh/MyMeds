@@ -1,48 +1,6 @@
-<template>
-  <aside class="sidebar">
-    <div>
-      <div class="brand">
-        <div class="brand-circle"></div>
-        <h1>MyMeds</h1>
-      </div>
-
-      <p class="portal-label">Doctor Portal</p>
-
-      <div class="sidebar-divider"></div>
-
-      <p class="menu-label">MENU</p>
-
-      <nav class="sidebar-nav">
-        <RouterLink to="/doctor" class="nav-item">
-          <LayoutDashboard :size="21" />
-          Dashboard
-        </RouterLink>
-
-        <RouterLink to="/doctor/patients" class="nav-item">
-          <Users :size="21" />
-          Patients
-        </RouterLink>
-
-        <RouterLink to="/doctor/history" class="nav-item">
-          <History :size="21" />
-          Medication History
-        </RouterLink>
-
-        <RouterLink to="/doctor/profile" class="nav-item">
-          <UserCircle :size="21" />
-          My Profile
-        </RouterLink>
-      </nav>
-    </div>
-
-    <button class="logout-button" type="button">
-      <LogOut :size="21" />
-      Logout
-    </button>
-  </aside>
-</template>
-
 <script setup>
+import { useRouter } from 'vue-router'
+
 import {
   LayoutDashboard,
   Users,
@@ -50,117 +8,95 @@ import {
   UserCircle,
   LogOut,
 } from 'lucide-vue-next'
+
+import { logout } from '../services/api'
+
+const router = useRouter()
+
+function handleLogout() {
+  logout()
+  router.push('/login')
+}
 </script>
 
-<style scoped>
-.sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 280px;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 30px 22px;
-  background: #ffffff;
-  border-right: 1px solid #e2e8f0;
-  z-index: 100;
-}
+<template>
+  <aside class="sidebar">
+    <div>
+      <div class="brand">
+        <div class="brand-circle"></div>
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 0 8px;
-}
+        <h1>
+          MyMeds
+        </h1>
+      </div>
 
-.brand-circle {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #2563eb;
-}
+      <p class="portal-label">
+        Doctor Portal
+      </p>
 
-.brand h1 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  color: #172033;
-}
+      <div class="sidebar-divider"></div>
 
-.portal-label {
-  margin: 8px 8px 22px;
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 500;
-}
+      <p class="menu-label">
+        MENU
+      </p>
 
-.sidebar-divider {
-  height: 1px;
-  background: #e2e8f0;
-  margin: 0 8px 24px;
-}
+      <nav class="sidebar-nav">
+        <RouterLink
+          to="/doctor"
+          class="nav-item"
+        >
+          <LayoutDashboard :size="21" />
 
-.menu-label {
-  margin: 0 8px 12px;
-  color: #94a3b8;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
+          <span>
+            Dashboard
+          </span>
+        </RouterLink>
 
-.sidebar-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
+        <RouterLink
+          to="/doctor/patients"
+          class="nav-item"
+        >
+          <Users :size="21" />
 
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 12px 13px;
-  border-radius: 8px;
-  color: #64748b;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
+          <span>
+            Patients
+          </span>
+        </RouterLink>
 
-.nav-item:hover {
-  background: #f1f5f9;
-  color: #172033;
-}
+        <RouterLink
+          to="/doctor/history"
+          class="nav-item"
+        >
+          <History :size="21" />
 
-.nav-item.router-link-active {
-  background: #eff6ff;
-  color: #2563eb;
-  font-weight: 600;
-}
+          <span>
+            Medication History
+          </span>
+        </RouterLink>
 
-.logout-button {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  width: 100%;
-  padding: 12px 13px;
-  border: none;
-  border-radius: 8px;
-  background: transparent;
-  color: #64748b;
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-}
+        <RouterLink
+          to="/doctor/profile"
+          class="nav-item"
+        >
+          <UserCircle :size="21" />
 
-.logout-button:hover {
-  background: #f1f5f9;
-  color: #172033;
-}
-</style>
+          <span>
+            My Profile
+          </span>
+        </RouterLink>
+      </nav>
+    </div>
+
+    <button
+      class="logout-button"
+      type="button"
+      @click="handleLogout"
+    >
+      <LogOut :size="21" />
+
+      <span>
+        Log out
+      </span>
+    </button>
+  </aside>
+</template>

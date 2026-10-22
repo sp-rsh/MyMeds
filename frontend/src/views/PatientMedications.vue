@@ -1,337 +1,158 @@
-<template>
-  <section class="medications-page">
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">My Medications</h1>
-        <p class="page-subtitle">
-          View your prescribed medications and today's schedule.
-        </p>
-      </div>
-    </header>
-
-    <section class="medication-section">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Medication Schedule</h2>
-          <p class="section-subtitle">
-            Your current medications and scheduled doses.
-          </p>
-        </div>
-      </div>
-
-      <div class="medication-list">
-        <RouterLink
-          v-for="medication in medications"
-          :key="medication.id"
-          :to="`/patient/medications/${medication.id}`"
-          class="medication-card"
-        >
-          <div class="medication-main">
-            <div class="medication-icon">
-              <Pill :size="22" />
-            </div>
-
-            <div class="medication-info">
-              <h3>{{ medication.name }}</h3>
-              <p>{{ medication.dosage }}</p>
-            </div>
-          </div>
-
-          <div class="schedule-info">
-            <span class="info-label">Scheduled time</span>
-            <strong>{{ medication.time }}</strong>
-          </div>
-
-          <div class="frequency-info">
-            <span class="info-label">Frequency</span>
-            <strong>{{ medication.frequency }}</strong>
-          </div>
-
-          <span
-            class="status-badge"
-            :class="medication.statusClass"
-          >
-            <CheckCircle2
-              v-if="medication.status === 'Taken'"
-              :size="15"
-            />
-
-            <Clock3
-              v-else-if="medication.status === 'Scheduled'"
-              :size="15"
-            />
-
-            <CalendarClock
-              v-else
-              :size="15"
-            />
-
-            {{ medication.status }}
-          </span>
-
-          <ChevronRight
-            class="chevron"
-            :size="20"
-          />
-        </RouterLink>
-      </div>
-    </section>
-
-    <div class="info-bar">
-      <Pill :size="20" />
-
-      <p>
-        Your medication schedule is prescribed and managed by your care team.
-        You can view medication details, but medication changes must be made
-        by your doctor.
-      </p>
-    </div>
-  </section>
-</template>
-
 <script setup>
 import {
-  Pill,
-  CheckCircle2,
-  Clock3,
-  CalendarClock,
-  ChevronRight,
-} from '@lucide/vue'
+  onMounted,
+  ref,
+} from 'vue'
 
-const medications = [
-  {
-    id: 'vitamin-d',
-    name: 'Vitamin D',
-    dosage: '1 tablet',
-    time: '08:00',
-    frequency: 'Daily',
-    status: 'Taken',
-    statusClass: 'taken',
-  },
-  {
-    id: 'metformin',
-    name: 'Metformin',
-    dosage: '2 tablets',
-    time: '13:00',
-    frequency: 'Daily',
-    status: 'Scheduled',
-    statusClass: 'scheduled',
-  },
-  {
-    id: 'aspirin',
-    name: 'Aspirin',
-    dosage: '1 tablet',
-    time: '20:00',
-    frequency: 'Daily',
-    status: 'Upcoming',
-    statusClass: 'upcoming',
-  },
-]
+import {
+  getPatientMedications,
+} from '../services/api'
+
+
+async function loadMedications() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    medications.value =
+      await getPatientMedications()
+
+  } catch (err) {
+    console.error(
+      'Could not load medications:',
+      err
+    )
+
+    error.value =
+      'Your medications could not be loaded.'
+
+  } finally {
+    loading.value = false
+  }
+}
+
+
+function formatTime(value) {
+  if (!value) {
+    return '—'
+  }
+
+  return String(value).slice(0, 5)
+}
+
+
+const medications = ref([])
+
+const loading = ref(true)
+const error = ref('')
+
+
+onMounted(loadMedications)
 </script>
 
-<style scoped>
-.medications-page {
-  max-width: 1200px;
-}
 
-.page-header {
-  margin-bottom: 34px;
-}
+<template>
+  <section>
 
-.medication-section {
-  margin-bottom: 28px;
-}
+    <h1 class="page-title">
+      My Medications
+    </h1>
 
-.section-header {
-  margin-bottom: 18px;
-}
 
-.section-title {
-  margin: 0;
-  color: #172033;
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.4px;
-}
+    <p class="page-subtitle">
+      Your current prescribed medications.
+    </p>
 
-.section-subtitle {
-  margin: 6px 0 0;
-  color: #64748b;
-  font-size: 15px;
-}
 
-.medication-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
+    <div v-if="loading">
+      <p class="page-subtitle">
+        Loading medications...
+      </p>
+    </div>
 
-.medication-card {
-  display: grid;
-  grid-template-columns: minmax(260px, 1.5fr) 150px 130px 125px 24px;
-  align-items: center;
-  gap: 20px;
 
-  padding: 21px 22px;
+    <div
+      v-else-if="error"
+      class="success-message"
+    >
+      {{ error }}
+    </div>
 
-  background: #ffffff;
-  border: 1px solid #e0e6ee;
-  border-radius: 16px;
 
-  color: inherit;
-  text-decoration: none;
+    <template v-else>
 
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    transform 0.15s ease;
-}
+      <h2 class="section-title">
+        Medication Schedule
+      </h2>
 
-.medication-card:hover {
-  border-color: #cbd8eb;
-  box-shadow: 0 5px 18px rgba(23, 32, 51, 0.06);
-  transform: translateY(-1px);
-}
 
-.medication-main {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
+      <div
+        v-if="medications.length"
+        class="table-card"
+      >
 
-.medication-icon {
-  width: 46px;
-  height: 46px;
+        <table>
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+          <thead>
+            <tr>
+              <th>Medication</th>
+              <th>Dosage</th>
+              <th>Time</th>
+              <th>Frequency</th>
+            </tr>
+          </thead>
 
-  flex-shrink: 0;
 
-  border-radius: 12px;
+          <tbody>
 
-  background: #eaf2ff;
-  color: #2563eb;
-}
+            <tr
+              v-for="medication in medications"
+              :key="medication.id"
+            >
 
-.medication-info h3 {
-  margin: 0;
+              <td class="patient-name">
+                {{ medication.medicationName }}
+              </td>
 
-  color: #172033;
-  font-size: 17px;
-  font-weight: 650;
-}
 
-.medication-info p {
-  margin: 5px 0 0;
+              <td>
+                {{ medication.dosage }}
+              </td>
 
-  color: #64748b;
-  font-size: 14px;
-}
 
-.schedule-info,
-.frequency-info {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
+              <td class="bold">
+                {{
+                  formatTime(
+                    medication.scheduledTime
+                  )
+                }}
+              </td>
 
-.info-label {
-  color: #94a3b8;
-  font-size: 12px;
-}
 
-.schedule-info strong,
-.frequency-info strong {
-  color: #172033;
-  font-size: 15px;
-  font-weight: 600;
-}
+              <td>
+                {{
+                  medication.frequency ||
+                  'Once daily'
+                }}
+              </td>
 
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+            </tr>
 
-  width: fit-content;
+          </tbody>
 
-  padding: 7px 11px;
+        </table>
 
-  border-radius: 999px;
+      </div>
 
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
 
-.status-badge.taken {
-  background: #ecfdf3;
-  color: #15803d;
-}
+      <div
+        v-else
+        class="success-message"
+      >
+        You currently have no prescribed medications.
+      </div>
 
-.status-badge.scheduled {
-  background: #eaf2ff;
-  color: #2563eb;
-}
+    </template>
 
-.status-badge.upcoming {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-.chevron {
-  color: #94a3b8;
-}
-
-.info-bar {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-
-  padding: 17px 20px;
-
-  border: 1px solid #dbeafe;
-  border-radius: 14px;
-
-  background: #f8fbff;
-  color: #2563eb;
-}
-
-.info-bar p {
-  margin: 0;
-
-  color: #64748b;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-@media (max-width: 1050px) {
-  .medication-card {
-    grid-template-columns: 1fr 140px 120px 120px 24px;
-    gap: 14px;
-  }
-}
-
-@media (max-width: 850px) {
-  .medication-card {
-    grid-template-columns: 1fr auto;
-    gap: 16px;
-  }
-
-  .schedule-info,
-  .frequency-info {
-    margin-left: 61px;
-  }
-
-  .status-badge {
-    margin-left: 61px;
-  }
-
-  .chevron {
-    grid-column: 2;
-    grid-row: 1;
-  }
-}
-</style>
+  </section>
+</template>

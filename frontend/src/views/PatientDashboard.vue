@@ -1,520 +1,301 @@
 <script setup>
 import {
-  Pill,
-  Clock3,
-  CheckCircle2,
-  CalendarClock,
-} from '@lucide/vue'
+  computed,
+  onMounted,
+  ref,
+} from 'vue'
 
-const medications = [
-  {
-    name: 'Vitamin D',
-    time: '08:00',
-    dosage: '1 tablet',
-    status: 'Taken',
-    statusClass: 'taken',
-  },
-  {
-    name: 'Metformin',
-    time: '13:00',
-    dosage: '2 tablets',
-    status: 'Scheduled',
-    statusClass: 'scheduled',
-  },
-  {
-    name: 'Aspirin',
-    time: '20:00',
-    dosage: '1 tablet',
-    status: 'Upcoming',
-    statusClass: 'upcoming',
-  },
-]
+import {
+  getCurrentUser,
+  getPatientAlerts,
+  getPatientMedications,
+} from '../services/api'
+
+
+async function loadDashboard() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const [
+      userData,
+      medicationData,
+      alertData,
+    ] = await Promise.all([
+      getCurrentUser(),
+      getPatientMedications(),
+      getPatientAlerts(),
+    ])
+
+    user.value = userData
+    medications.value = medicationData
+    alerts.value = alertData
+
+  } catch (err) {
+    console.error(
+      'Could not load patient dashboard:',
+      err
+    )
+
+    error.value =
+      'Your medication information could not be loaded.'
+
+  } finally {
+    loading.value = false
+  }
+}
+
+
+function formatTime(value) {
+  if (!value) {
+    return '—'
+  }
+
+  return String(value).slice(0, 5)
+}
+
+
+function timeInMinutes(value) {
+  if (!value) {
+    return Number.MAX_SAFE_INTEGER
+  }
+
+  const [hours, minutes] =
+    String(value)
+      .slice(0, 5)
+      .split(':')
+      .map(Number)
+
+  return hours * 60 + minutes
+}
+
+
+const user = ref(null)
+const medications = ref([])
+const alerts = ref([])
+
+const loading = ref(true)
+const error = ref('')
+
+
+const greeting = computed(() => {
+  const hour =
+    new Date().getHours()
+
+  if (hour < 12) {
+    return 'Good morning'
+  }
+
+  if (hour < 18) {
+    return 'Good afternoon'
+  }
+
+  return 'Good evening'
+})
+
+
+const patientName = computed(() => {
+  return (
+    user.value?.name ??
+    user.value?.username ??
+    ''
+  )
+})
+
+
+const nextMedication = computed(() => {
+  const now =
+    new Date()
+
+  const currentMinutes =
+    now.getHours() * 60 +
+    now.getMinutes()
+
+  const upcoming =
+    medications.value
+      .filter(
+        medication =>
+          timeInMinutes(
+            medication.scheduledTime
+          ) >= currentMinutes
+      )
+      .sort(
+        (a, b) =>
+          timeInMinutes(a.scheduledTime) -
+          timeInMinutes(b.scheduledTime)
+      )
+
+  return upcoming[0] ?? null
+})
+
+
+onMounted(loadDashboard)
 </script>
 
+
 <template>
-  <section class="dashboard">
-    <!-- Header -->
-    <header class="page-header">
-      <div>
-        <h1 class="page-title">Good morning, Anvi</h1>
-        <p class="page-subtitle">
-          Here's an overview of your medication schedule for today.
-        </p>
-      </div>
-    </header>
+  <section>
 
-    <!-- Top cards -->
-    <div class="top-grid">
-      <!-- Next dose -->
-      <article class="next-dose-card">
-        <div class="card-heading">
-          <div class="icon-box blue-icon">
-            <Pill :size="22" />
-          </div>
+    <h1 class="page-title">
+      {{ greeting }},
+      {{ patientName }}
+    </h1>
 
-          <div>
-            <p class="eyebrow">NEXT DOSE</p>
-            <h2>Metformin</h2>
-          </div>
-        </div>
 
-        <div class="next-dose-content">
-          <div>
-            <p class="dose-time">13:00</p>
-            <p class="dose-countdown">In 1h 20m</p>
-          </div>
+    <p class="page-subtitle">
+      Here is your medication information for today.
+    </p>
 
-          <span class="status-badge scheduled">
-            <Clock3 :size="15" />
-            Scheduled
-          </span>
-        </div>
-      </article>
 
-      <!-- Adherence -->
-      <article class="adherence-card">
-        <div class="card-heading">
-          <div class="icon-box green-icon">
-            <CheckCircle2 :size="22" />
-          </div>
-
-          <div>
-            <p class="eyebrow">TODAY'S ADHERENCE</p>
-            <h2>Medication Progress</h2>
-          </div>
-        </div>
-
-        <div class="adherence-content">
-          <div class="progress-circle">
-            <span>67%</span>
-          </div>
-
-          <div class="adherence-text">
-            <strong>2 of 3</strong>
-            <span>medications completed</span>
-          </div>
-        </div>
-      </article>
-    </div>
-
-    <!-- Today's medication -->
-    <section class="medication-section">
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">Today's Medication</h2>
-          <p class="section-subtitle">
-            Your scheduled medications for today.
-          </p>
-        </div>
-
-        <RouterLink
-          to="/patient/medications"
-          class="view-all-button"
-        >
-          <CalendarClock :size="18" />
-          View all
-        </RouterLink>
-      </div>
-
-      <div class="medication-list">
-        <article
-          v-for="medication in medications"
-          :key="medication.name"
-          class="medication-card"
-        >
-          <div class="medication-main">
-            <div class="medication-icon">
-              <Pill :size="21" />
-            </div>
-
-            <div class="medication-info">
-              <h3>{{ medication.name }}</h3>
-              <p>{{ medication.dosage }}</p>
-            </div>
-          </div>
-
-          <div class="medication-time">
-            <span class="time-label">Scheduled time</span>
-            <strong>{{ medication.time }}</strong>
-          </div>
-
-          <span
-            class="status-badge"
-            :class="medication.statusClass"
-          >
-            <CheckCircle2
-              v-if="medication.status === 'Taken'"
-              :size="15"
-            />
-
-            <Clock3
-              v-else-if="medication.status === 'Scheduled'"
-              :size="15"
-            />
-
-            <CalendarClock
-              v-else
-              :size="15"
-            />
-
-            {{ medication.status }}
-          </span>
-        </article>
-      </div>
-    </section>
-
-    <!-- Information bar -->
-    <div class="info-bar">
-      <Pill :size="20" />
-
-      <p>
-        Your medication schedule is prescribed and managed by your care team.
-        If you have questions about your medication, please contact your doctor.
+    <div v-if="loading">
+      <p class="page-subtitle">
+        Loading your medications...
       </p>
     </div>
+
+
+    <div
+      v-else-if="error"
+      class="success-message"
+    >
+      {{ error }}
+    </div>
+
+
+    <template v-else>
+
+      <h2 class="section-title">
+        Today
+      </h2>
+
+
+      <div class="summary-grid">
+
+        <div class="summary-card">
+
+          <p class="card-label">
+            My Medications
+          </p>
+
+          <h3>
+            {{ medications.length }}
+          </h3>
+
+          <p>
+            Prescribed medications
+          </p>
+
+        </div>
+
+
+        <div class="summary-card">
+
+          <p class="card-label">
+            Missed Doses
+          </p>
+
+          <h3>
+            {{ alerts.length }}
+          </h3>
+
+          <p>
+            Doses that may need your attention
+          </p>
+
+        </div>
+
+
+        <div class="summary-card">
+
+          <p class="card-label">
+            Next Dose
+          </p>
+
+          <h3>
+            {{
+              nextMedication
+                ? formatTime(
+                    nextMedication.scheduledTime
+                  )
+                : '—'
+            }}
+          </h3>
+
+          <p>
+            {{
+              nextMedication
+                ? nextMedication.medicationName
+                : 'No more scheduled doses today'
+            }}
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <template v-if="alerts.length">
+
+        <h2 class="section-title">
+          Needs Attention
+        </h2>
+
+
+        <div class="table-card">
+
+          <table>
+
+            <thead>
+              <tr>
+                <th>Medication</th>
+                <th>Scheduled Time</th>
+                <th>Message</th>
+              </tr>
+            </thead>
+
+
+            <tbody>
+
+              <tr
+                v-for="alert in alerts"
+                :key="alert.medicationId"
+              >
+
+                <td class="patient-name">
+                  {{ alert.medicationName }}
+                </td>
+
+                <td class="bold">
+                  {{
+                    formatTime(
+                      alert.scheduledTime
+                    )
+                  }}
+                </td>
+
+                <td>
+                  {{ alert.message }}
+                </td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </template>
+
+
+      <div
+        v-else
+        class="success-message"
+      >
+        No missed medication doses require your attention.
+      </div>
+
+    </template>
+
   </section>
 </template>
-
-<style scoped>
-.dashboard {
-  max-width: 1200px;
-}
-
-/* Header */
-
-.page-header {
-  margin-bottom: 32px;
-}
-
-/* Top cards */
-
-.top-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 24px;
-  margin-bottom: 40px;
-}
-
-.next-dose-card,
-.adherence-card {
-  padding: 28px;
-  background: #ffffff;
-  border: 1px solid #e0e6ee;
-  border-radius: 18px;
-}
-
-.card-heading {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.icon-box {
-  width: 46px;
-  height: 46px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 13px;
-}
-
-.blue-icon {
-  background: #eaf2ff;
-  color: #2563eb;
-}
-
-.green-icon {
-  background: #ecfdf3;
-  color: #16a34a;
-}
-
-.eyebrow {
-  margin: 0 0 4px;
-  color: #94a3b8;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-}
-
-.card-heading h2 {
-  margin: 0;
-  color: #172033;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.next-dose-content {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-
-  margin-top: 30px;
-}
-
-.dose-time {
-  margin: 0;
-  color: #172033;
-  font-size: 34px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-.dose-countdown {
-  margin: 5px 0 0;
-  color: #64748b;
-  font-size: 15px;
-}
-
-/* Adherence */
-
-.adherence-content {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-top: 24px;
-}
-
-.progress-circle {
-  width: 92px;
-  height: 92px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 9px solid #dbeafe;
-  border-right-color: #2563eb;
-  border-bottom-color: #2563eb;
-  border-radius: 50%;
-}
-
-.progress-circle span {
-  color: #172033;
-  font-size: 20px;
-  font-weight: 700;
-}
-
-.adherence-text {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.adherence-text strong {
-  color: #172033;
-  font-size: 22px;
-}
-
-.adherence-text span {
-  color: #64748b;
-  font-size: 15px;
-}
-
-/* Medication section */
-
-.medication-section {
-  margin-bottom: 28px;
-}
-
-.section-header {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 18px;
-}
-
-.section-title {
-  margin: 0;
-  color: #172033;
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.4px;
-}
-
-.section-subtitle {
-  margin: 6px 0 0;
-  color: #64748b;
-  font-size: 15px;
-}
-
-.view-all-button {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-
-  padding: 9px 13px;
-
-  border: 1px solid #dbe3ee;
-  border-radius: 10px;
-
-  background: #ffffff;
-  color: #2563eb;
-
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.view-all-button:hover {
-  background: #f8fafc;
-}
-
-/* Medication cards */
-
-.medication-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.medication-card {
-  display: grid;
-  grid-template-columns: 1fr 180px 130px;
-  align-items: center;
-  gap: 20px;
-
-  padding: 18px 22px;
-
-  background: #ffffff;
-  border: 1px solid #e0e6ee;
-  border-radius: 15px;
-}
-
-.medication-main {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.medication-icon {
-  width: 42px;
-  height: 42px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 11px;
-
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.medication-info h3 {
-  margin: 0;
-  color: #172033;
-  font-size: 17px;
-  font-weight: 650;
-}
-
-.medication-info p {
-  margin: 4px 0 0;
-  color: #64748b;
-  font-size: 14px;
-}
-
-.medication-time {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.time-label {
-  color: #94a3b8;
-  font-size: 12px;
-}
-
-.medication-time strong {
-  color: #172033;
-  font-size: 16px;
-}
-
-/* Status */
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-
-  width: fit-content;
-
-  padding: 7px 11px;
-
-  border-radius: 999px;
-
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.status-badge.taken {
-  background: #ecfdf3;
-  color: #15803d;
-}
-
-.status-badge.scheduled {
-  background: #eaf2ff;
-  color: #2563eb;
-}
-
-.status-badge.upcoming {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-/* Information bar */
-
-.info-bar {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-
-  padding: 17px 20px;
-
-  border: 1px solid #dbeafe;
-  border-radius: 14px;
-
-  background: #f8fbff;
-  color: #2563eb;
-}
-
-.info-bar p {
-  margin: 0;
-  color: #64748b;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-/* Responsive */
-
-@media (max-width: 900px) {
-  .top-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .medication-card {
-    grid-template-columns: 1fr;
-  }
-
-  .medication-time {
-    margin-left: 56px;
-  }
-}
-
-@media (max-width: 600px) {
-  .section-header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .next-dose-content {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 18px;
-  }
-}
-</style>
