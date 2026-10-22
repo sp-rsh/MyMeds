@@ -52,9 +52,12 @@ public class WebAPI
             TimeSpan timeOnly = new TimeOnly(timeInts[0], timeInts[1], timeInts[2]).ToTimeSpan();
             dEvent.targetTime = DateTime.UtcNow.Date.Add(timeOnly);
             dEvent.targetTimeBuffer = new(1, 0, 0);
-            //TODO implement multirow parsing
-            dEvent.dispenseRow = 1;
-            Console.WriteLine($"{nameof(WebAPI)}.{nameof(GetNextDispenseEvent)}: IMPLEMENT MULTIPLE ROWS SUPPORT (DEFAULTS TO 1 RN)");
+            if(!json.TryGetPropertyValue("towerToDispense", out JsonNode? tower) || tower == null || tower.GetValueKind() != System.Text.Json.JsonValueKind.Number)
+            {
+                Console.WriteLine($"{nameof(WebAPI)}.{nameof(GetNextDispenseEvent)} Request returned no valid towerToDispense");
+                return null;
+            }
+            dEvent.dispenseRow = tower.GetValue<int>();
             return dEvent;
         }
         catch (Exception e)

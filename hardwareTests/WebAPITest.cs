@@ -27,8 +27,8 @@ public class WebAPITest
             hasDispensed = true,
             dispensedTime = DateTime.UtcNow,
         };
-        Assert.AreNotEqual("PLACEHOLDER/", config.API_DOMAIN);
-        Assert.AreNotEqual("PLACEHOLDER", config.API_POSTEVENT);
+        Assert.AreNotEqual("PLACEHOLDER/", config.API_DOMAIN, "Requests shouldnt use PLACEHOLDER for return");
+        Assert.AreNotEqual("PLACEHOLDER", config.API_POSTEVENT, "Requests shouldnt use PLACEHOLDER for return");
         Assert.IsTrue(await api.PostDispenseEventAsync(dEvent), $"{nameof(api.PostDispenseEventAsync)} failed Posting event");
     }
 }
