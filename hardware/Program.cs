@@ -1,5 +1,4 @@
 ﻿using CSP_Hardware;
-using Iot.Device.ExplorerHat;
 
 class Program
 {
@@ -43,13 +42,13 @@ class Program
         }
         if(nextEvent.hasDispensed)
         {
-            if(API.PostDispenseEvent(nextEvent))
+            if(await API.PostDispenseEventAsync(nextEvent))
                 hasNextEvent = false;
             return;
         }
         if(nextEvent.targetTime.Add(nextEvent.targetTimeBuffer).CompareTo(DateTime.UtcNow) < 0)
         {
-            NoDispenseWithinTime();
+            await NoDispenseWithinTime();
             return;
         }
         if(nextEvent.targetTime.CompareTo(DateTime.UtcNow) < 0)
@@ -89,9 +88,9 @@ class Program
         nextEvent.dispensedTime = DateTime.UtcNow;
         nextEvent.hasDispensed = true;
     }
-    void NoDispenseWithinTime()
+    async Task NoDispenseWithinTime()
     {
-        if(API.PostDispenseEvent(nextEvent))
+        if(await API.PostDispenseEventAsync(nextEvent))
             hasNextEvent = false;
     }
     void DispenseTowers(bool[] dispenseTower)
