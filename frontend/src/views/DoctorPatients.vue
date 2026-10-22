@@ -1,29 +1,18 @@
 <script setup>
-import {
-  computed,
-  onMounted,
-  ref,
-} from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
-import {
-  getDoctorPatients,
-} from '../services/api'
+import { getDoctorPatients } from '../services/api'
 
 async function loadPatients() {
   loading.value = true
   error.value = ''
 
   try {
-    patients.value =
-      await getDoctorPatients()
+    patients.value = await getDoctorPatients()
   } catch (err) {
-    console.error(
-      'Could not load patients:',
-      err
-    )
+    console.error('Could not load patients:', err)
 
-    error.value =
-      'Patients could not be loaded.'
+    error.value = 'Patients could not be loaded.'
   } finally {
     loading.value = false
   }
@@ -44,21 +33,13 @@ const loading = ref(true)
 const error = ref('')
 
 const filteredPatients = computed(() => {
-  const value =
-    search.value
-      .trim()
-      .toLowerCase()
+  const value = search.value.trim().toLowerCase()
 
   if (!value) {
     return patients.value
   }
 
-  return patients.value.filter(
-    patient =>
-      patient.name
-        ?.toLowerCase()
-        .includes(value)
-  )
+  return patients.value.filter((patient) => patient.name?.toLowerCase().includes(value))
 })
 
 onMounted(loadPatients)
@@ -66,45 +47,23 @@ onMounted(loadPatients)
 
 <template>
   <section>
-    <h1 class="page-title">
-      Patients
-    </h1>
+    <h1 class="page-title">Patients</h1>
 
-    <p class="page-subtitle">
-      View and manage your assigned patients.
-    </p>
+    <p class="page-subtitle">View and manage your assigned patients.</p>
 
     <div class="patients-toolbar">
-      <h2 class="section-title">
-        Patient Overview
-      </h2>
+      <h2 class="section-title">Patient Overview</h2>
 
-      <input
-        v-model="search"
-        class="search-input"
-        type="text"
-        placeholder="Search patients..."
-      />
+      <input v-model="search" class="search-input" type="text" placeholder="Search patients..." />
     </div>
 
-    <p
-      v-if="loading"
-      class="loading-message"
-    >
-      Loading patients...
-    </p>
+    <p v-if="loading" class="loading-message">Loading patients...</p>
 
-    <p
-      v-else-if="error"
-      class="error-message"
-    >
+    <p v-else-if="error" class="error-message">
       {{ error }}
     </p>
 
-    <div
-      v-else
-      class="table-card"
-    >
+    <div v-else class="table-card">
       <table>
         <thead>
           <tr>
@@ -118,41 +77,23 @@ onMounted(loadPatients)
         </thead>
 
         <tbody>
-          <tr
-            v-for="patient in filteredPatients"
-            :key="patient.id"
-          >
+          <tr v-for="patient in filteredPatients" :key="patient.id">
             <td class="patient-name">
               {{ patient.name }}
             </td>
 
             <td>
-              {{
-                patient.medication ||
-                'No medication'
-              }}
+              {{ patient.medication || 'No medication' }}
             </td>
 
             <td class="bold">
-              {{
-                patient.nextDose ||
-                '—'
-              }}
+              {{ patient.nextDose || '—' }}
             </td>
 
-            <td class="bold">
-              {{ patient.adherence }}%
-            </td>
+            <td class="bold">{{ patient.adherence }}%</td>
 
             <td>
-              <span
-                class="status-badge"
-                :class="
-                  statusClass(
-                    patient.status
-                  )
-                "
-              >
+              <span class="status-badge" :class="statusClass(patient.status)">
                 <span class="status-dot"></span>
 
                 {{ patient.status }}
@@ -160,19 +101,14 @@ onMounted(loadPatients)
             </td>
 
             <td>
-              <RouterLink
-                :to="`/doctor/patients/${patient.id}`"
-                class="primary-button"
-              >
+              <RouterLink :to="`/doctor/patients/${patient.id}`" class="primary-button">
                 View Patient
               </RouterLink>
             </td>
           </tr>
 
           <tr v-if="filteredPatients.length === 0">
-            <td colspan="6">
-              No patients found.
-            </td>
+            <td colspan="6">No patients found.</td>
           </tr>
         </tbody>
       </table>

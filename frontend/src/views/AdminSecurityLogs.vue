@@ -1,29 +1,18 @@
 <script setup>
-import {
-  computed,
-  onMounted,
-  ref,
-} from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
-import {
-  getSecurityLogs,
-} from '../services/api'
+import { getSecurityLogs } from '../services/api'
 
 async function loadSecurityLogs() {
   loading.value = true
   error.value = ''
 
   try {
-    logs.value =
-      await getSecurityLogs()
+    logs.value = await getSecurityLogs()
   } catch (err) {
-    console.error(
-      'Could not load security logs:',
-      err
-    )
+    console.error('Could not load security logs:', err)
 
-    error.value =
-      'Security logs could not be loaded.'
+    error.value = 'Security logs could not be loaded.'
   } finally {
     loading.value = false
   }
@@ -36,11 +25,7 @@ function formatTime(value) {
 
   const date = new Date(value)
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return value
   }
 
@@ -55,32 +40,19 @@ const error = ref('')
 const search = ref('')
 
 const filteredLogs = computed(() => {
-  const value =
-    search.value
-      .trim()
-      .toLowerCase()
+  const value = search.value.trim().toLowerCase()
 
   if (!value) {
     return logs.value
   }
 
   return logs.value.filter(
-    log =>
-      log.event
-        ?.toLowerCase()
-        .includes(value) ||
-      log.user
-        ?.toLowerCase()
-        .includes(value) ||
-      log.type
-        ?.toLowerCase()
-        .includes(value) ||
-      log.result
-        ?.toLowerCase()
-        .includes(value) ||
-      log.details
-        ?.toLowerCase()
-        .includes(value)
+    (log) =>
+      log.event?.toLowerCase().includes(value) ||
+      log.user?.toLowerCase().includes(value) ||
+      log.type?.toLowerCase().includes(value) ||
+      log.result?.toLowerCase().includes(value) ||
+      log.details?.toLowerCase().includes(value),
   )
 })
 
@@ -89,18 +61,12 @@ onMounted(loadSecurityLogs)
 
 <template>
   <section>
-    <h1 class="page-title">
-      Security Logs
-    </h1>
+    <h1 class="page-title">Security Logs</h1>
 
-    <p class="page-subtitle">
-      Review recorded security and account activity.
-    </p>
+    <p class="page-subtitle">Review recorded security and account activity.</p>
 
     <div class="patients-toolbar">
-      <h2 class="section-title">
-        Activity Log
-      </h2>
+      <h2 class="section-title">Activity Log</h2>
 
       <input
         v-model="search"
@@ -110,24 +76,13 @@ onMounted(loadSecurityLogs)
       />
     </div>
 
-    <p
-      v-if="loading"
-      class="loading-message"
-    >
-      Loading security logs...
-    </p>
+    <p v-if="loading" class="loading-message">Loading security logs...</p>
 
-    <p
-      v-else-if="error"
-      class="error-message"
-    >
+    <p v-else-if="error" class="error-message">
       {{ error }}
     </p>
 
-    <div
-      v-else
-      class="table-card"
-    >
+    <div v-else class="table-card">
       <table>
         <thead>
           <tr>
@@ -141,16 +96,9 @@ onMounted(loadSecurityLogs)
         </thead>
 
         <tbody>
-          <tr
-            v-for="log in filteredLogs"
-            :key="log.id"
-          >
+          <tr v-for="log in filteredLogs" :key="log.id">
             <td>
-              {{
-                formatTime(
-                  log.time
-                )
-              }}
+              {{ formatTime(log.time) }}
             </td>
 
             <td class="patient-name">
@@ -168,13 +116,7 @@ onMounted(loadSecurityLogs)
             <td>
               <span
                 class="status-badge"
-                :class="
-                  String(log.result)
-                    .toLowerCase()
-                    .includes('success')
-                    ? 'taken'
-                    : 'missed'
-                "
+                :class="String(log.result).toLowerCase().includes('success') ? 'taken' : 'missed'"
               >
                 <span class="status-dot"></span>
 
@@ -188,9 +130,7 @@ onMounted(loadSecurityLogs)
           </tr>
 
           <tr v-if="filteredLogs.length === 0">
-            <td colspan="6">
-              No security logs found.
-            </td>
+            <td colspan="6">No security logs found.</td>
           </tr>
         </tbody>
       </table>

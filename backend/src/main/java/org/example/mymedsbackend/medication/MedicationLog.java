@@ -1,10 +1,10 @@
-
 package org.example.mymedsbackend.medication;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -17,6 +17,7 @@ public class MedicationLog {
     private int medicationId;
     private String patientUsername;
     private String medicationName;
+
     private String eventType;
     private LocalDateTime eventTime;
     private String details;

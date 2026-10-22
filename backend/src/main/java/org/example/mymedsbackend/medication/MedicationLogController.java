@@ -1,8 +1,8 @@
 package org.example.mymedsbackend.medication;
 
-import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.DoctorPatientAssignment;
-import org.example.mymedsbackend.user.DoctorPatientAssignmentrepo;
+import org.example.mymedsbackend.user.DoctorPatientAssignmentRepo;
+import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.UserRepo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -10,19 +10,20 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/logs")
-public class LogController {
+public class MedicationLogController {
 
-    private final MedicationLogrepo repo;
+    private final MedicationLogRepo repo;
     private final UserRepo userRepo;
-    private final DoctorPatientAssignmentrepo assignmentRepo;
+    private final DoctorPatientAssignmentRepo assignmentRepo;
 
-    public LogController(MedicationLogrepo repo, UserRepo userRepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public MedicationLogController(MedicationLogRepo repo, UserRepo userRepo, DoctorPatientAssignmentRepo assignmentRepo) {
         this.repo = repo;
         this.userRepo = userRepo;
         this.assignmentRepo = assignmentRepo;

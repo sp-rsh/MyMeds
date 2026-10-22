@@ -1,37 +1,20 @@
 <script setup>
-import {
-  onMounted,
-  reactive,
-  ref,
-} from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
-import {
-  useRoute,
-} from 'vue-router'
+import { useRoute } from 'vue-router'
 
-import {
-  addMedication,
-  getPatient,
-  removeMedication,
-} from '../services/api'
+import { addMedication, getPatient, removeMedication } from '../services/api'
 
 async function loadPatient() {
   loading.value = true
   error.value = ''
 
   try {
-    patient.value =
-      await getPatient(
-        route.params.patientId
-      )
+    patient.value = await getPatient(route.params.patientId)
   } catch (err) {
-    console.error(
-      'Could not load patient:',
-      err
-    )
+    console.error('Could not load patient:', err)
 
-    error.value =
-      'Patient information could not be loaded.'
+    error.value = 'Patient information could not be loaded.'
   } finally {
     loading.value = false
   }
@@ -41,8 +24,7 @@ function openAddMedication() {
   newMedication.name = ''
   newMedication.dosage = ''
   newMedication.time = ''
-  newMedication.frequency =
-    'Once daily'
+  newMedication.towerToDispense = 1;
 
   medicationError.value = ''
   showAddMedication.value = true
@@ -59,42 +41,27 @@ async function addMedicationToPatient() {
 
   try {
     await addMedication({
-      patientusername:
-        patient.value.patientusername,
-      medicationName:
-        newMedication.name,
-      dosage:
-        newMedication.dosage,
-      scheduledTime:
-        newMedication.time,
-      frequency:
-        newMedication.frequency,
+      patientUsername: patient.value.patientUsername,
+      medicationName: newMedication.name,
+      dosage: newMedication.dosage,
+      scheduledTime: newMedication.time,
+      towerToDispense: newMedication.towerToDispense,
     })
 
     closeAddMedication()
 
     await loadPatient()
   } catch (err) {
-    console.error(
-      'Could not add medication:',
-      err
-    )
+    console.error('Could not add medication:', err)
 
-    medicationError.value =
-      err.message ||
-      'Medication could not be added.'
+    medicationError.value = err.message || 'Medication could not be added.'
   } finally {
     addingMedication.value = false
   }
 }
 
-async function removeMedicationFromPatient(
-  medicationId
-) {
-  const confirmed =
-    window.confirm(
-      'Remove this medication from the patient schedule?'
-    )
+async function removeMedicationFromPatient(medicationId) {
+  const confirmed = window.confirm('Remove this medication from the patient schedule?')
 
   if (!confirmed) {
     return
@@ -103,21 +70,13 @@ async function removeMedicationFromPatient(
   medicationError.value = ''
 
   try {
-    await removeMedication(
-      route.params.patientId,
-      medicationId
-    )
+    await removeMedication(route.params.patientId, medicationId)
 
     await loadPatient()
   } catch (err) {
-    console.error(
-      'Could not remove medication:',
-      err
-    )
+    console.error('Could not remove medication:', err)
 
-    medicationError.value =
-      err.message ||
-      'Medication could not be removed.'
+    medicationError.value = err.message || 'Medication could not be removed.'
   }
 }
 
@@ -130,9 +89,7 @@ function patientStatusClass(status) {
 }
 
 function medicationStatusClass(status) {
-  return String(
-    status || ''
-  ).toLowerCase()
+  return String(status || '').toLowerCase()
 }
 
 const route = useRoute()
@@ -150,7 +107,7 @@ const newMedication = reactive({
   name: '',
   dosage: '',
   time: '',
-  frequency: 'Once daily',
+  towerToDispense: 1,
 })
 
 onMounted(loadPatient)
@@ -158,35 +115,17 @@ onMounted(loadPatient)
 
 <template>
   <section>
-    <RouterLink
-      to="/doctor/patients"
-      class="back-link"
-    >
-      ← Back to Patients
-    </RouterLink>
+    <RouterLink to="/doctor/patients" class="back-link"> ← Back to Patients </RouterLink>
 
     <h1 class="page-title">
-      {{
-        patient?.name ||
-        'Patient'
-      }}
+      {{ patient?.name || 'Patient' }}
     </h1>
 
-    <p class="page-subtitle">
-      Patient details and medication management.
-    </p>
+    <p class="page-subtitle">Patient details and medication management.</p>
 
-    <p
-      v-if="loading"
-      class="loading-message"
-    >
-      Loading patient...
-    </p>
+    <p v-if="loading" class="loading-message">Loading patient...</p>
 
-    <p
-      v-else-if="error"
-      class="error-message"
-    >
+    <p v-else-if="error" class="error-message">
       {{ error }}
     </p>
 
@@ -213,73 +152,40 @@ onMounted(loadPatient)
               </td>
 
               <td>
-                <span
-                  class="status-badge"
-                  :class="
-                    patientStatusClass(
-                      patient.status
-                    )
-                  "
-                >
+                <span class="status-badge" :class="patientStatusClass(patient.status)">
                   <span class="status-dot"></span>
 
                   {{ patient.status }}
                 </span>
               </td>
 
-              <td class="bold">
-                {{ patient.adherence }}%
-              </td>
+              <td class="bold">{{ patient.adherence }}%</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <div class="medication-heading">
-        <h2 class="section-title">
-          Current Medications
-        </h2>
+        <h2 class="section-title">Current Medications</h2>
 
-        <button
-          type="button"
-          class="primary-button"
-          @click="openAddMedication"
-        >
+        <button type="button" class="primary-button" @click="openAddMedication">
           + Add Medication
         </button>
       </div>
 
-      <div
-        v-if="showAddMedication"
-        class="medication-form-card"
-      >
-        <h2>
-          Add Medication
-        </h2>
+      <div v-if="showAddMedication" class="medication-form-card">
+        <h2>Add Medication</h2>
 
-        <form
-          @submit.prevent="
-            addMedicationToPatient
-          "
-        >
+        <form @submit.prevent="addMedicationToPatient">
           <div class="form-content">
             <div class="form-group">
-              <label for="new-medication-name">
-                Medication Name
-              </label>
+              <label for="new-medication-name"> Medication Name </label>
 
-              <input
-                id="new-medication-name"
-                v-model="newMedication.name"
-                type="text"
-                required
-              />
+              <input id="new-medication-name" v-model="newMedication.name" type="text" required />
             </div>
 
             <div class="form-group">
-              <label for="new-medication-dosage">
-                Dosage
-              </label>
+              <label for="new-medication-dosage"> Dosage </label>
 
               <input
                 id="new-medication-dosage"
@@ -290,69 +196,38 @@ onMounted(loadPatient)
             </div>
 
             <div class="form-group">
-              <label for="new-medication-time">
-                Scheduled Time
-              </label>
+              <label for="new-medication-time"> Scheduled Time </label>
 
-              <input
-                id="new-medication-time"
-                v-model="newMedication.time"
-                type="time"
-                required
-              />
+              <input id="new-medication-time" v-model="newMedication.time" type="time" required />
             </div>
 
             <div class="form-group">
-              <label for="new-medication-frequency">
-                Frequency
-              </label>
+              <label for="medication-tower_to_dispense">Tower to dispense</label>
 
-              <select
-                id="new-medication-frequency"
-                v-model="newMedication.frequency"
-                required
-              >
-                <option value="Once daily">
-                  Once daily
-                </option>
+              <select id="medication-tower_to_dispense" v-model="newMedication.towerToDispense" required>
+                <option disabled value="">Select tower to dispense</option>
 
-                <option value="Twice daily">
-                  Twice daily
-                </option>
+                <option value="1">Tower One</option>
 
-                <option value="Three times daily">
-                  Three times daily
-                </option>
+                <option value="2">Tower Two</option>
+
+                <option value="3">Tower Three</option>
               </select>
             </div>
 
-            <p
-              v-if="medicationError"
-              class="error-message"
-            >
+
+            <p v-if="medicationError" class="error-message">
               {{ medicationError }}
             </p>
           </div>
 
           <div class="form-footer">
             <div class="form-actions">
-              <button
-                type="submit"
-                class="primary-button"
-                :disabled="addingMedication"
-              >
-                {{
-                  addingMedication
-                    ? 'Adding...'
-                    : 'Add Medication'
-                }}
+              <button type="submit" class="primary-button" :disabled="addingMedication">
+                {{ addingMedication ? 'Adding...' : 'Add Medication' }}
               </button>
 
-              <button
-                type="button"
-                class="secondary-button"
-                @click="closeAddMedication"
-              >
+              <button type="button" class="secondary-button" @click="closeAddMedication">
                 Cancel
               </button>
             </div>
@@ -360,34 +235,25 @@ onMounted(loadPatient)
         </form>
       </div>
 
-      <p
-        v-if="medicationError && !showAddMedication"
-        class="error-message"
-      >
+      <p v-if="medicationError && !showAddMedication" class="error-message">
         {{ medicationError }}
       </p>
 
-      <div
-        v-if="patient.medications.length"
-        class="table-card"
-      >
+      <div v-if="patient.medications.length" class="table-card">
         <table>
           <thead>
             <tr>
               <th>Medication</th>
               <th>Dosage</th>
               <th>Scheduled</th>
-              <th>Frequency</th>
+              <th>Tower To Dispense</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
 
           <tbody>
-            <tr
-              v-for="medication in patient.medications"
-              :key="medication.id"
-            >
+            <tr v-for="medication in patient.medications" :key="medication.id">
               <td class="patient-name">
                 {{ medication.name }}
               </td>
@@ -401,18 +267,11 @@ onMounted(loadPatient)
               </td>
 
               <td>
-                {{ medication.frequency }}
+                {{ medication.towerToDispense }}
               </td>
 
               <td>
-                <span
-                  class="status-badge"
-                  :class="
-                    medicationStatusClass(
-                      medication.status
-                    )
-                  "
-                >
+                <span class="status-badge" :class="medicationStatusClass(medication.status)">
                   <span class="status-dot"></span>
 
                   {{ medication.status }}
@@ -431,11 +290,7 @@ onMounted(loadPatient)
                   <button
                     type="button"
                     class="secondary-button"
-                    @click="
-                      removeMedicationFromPatient(
-                        medication.id
-                      )
-                    "
+                    @click="removeMedicationFromPatient(medication.id)"
                   >
                     Remove
                   </button>
@@ -446,21 +301,11 @@ onMounted(loadPatient)
         </table>
       </div>
 
-      <p
-        v-else
-        class="empty-message"
-      >
-        This patient currently has no medications.
-      </p>
+      <p v-else class="empty-message">This patient currently has no medications.</p>
 
-      <h2 class="section-title">
-        Recent Medication Activity
-      </h2>
+      <h2 class="section-title">Recent Medication Activity</h2>
 
-      <div
-        v-if="patient.activity.length"
-        class="table-card"
-      >
+      <div v-if="patient.activity.length" class="table-card">
         <table>
           <thead>
             <tr>
@@ -471,10 +316,7 @@ onMounted(loadPatient)
           </thead>
 
           <tbody>
-            <tr
-              v-for="activity in patient.activity"
-              :key="activity.id"
-            >
+            <tr v-for="activity in patient.activity" :key="activity.id">
               <td class="bold">
                 {{ activity.time }}
               </td>
@@ -491,12 +333,7 @@ onMounted(loadPatient)
         </table>
       </div>
 
-      <p
-        v-else
-        class="empty-message"
-      >
-        No medication activity is available.
-      </p>
+      <p v-else class="empty-message">No medication activity is available.</p>
     </template>
   </section>
 </template>

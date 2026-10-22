@@ -1,15 +1,16 @@
 package org.example.mymedsbackend.user;
 
+import org.example.mymedsbackend.medication.Medication;
 import org.example.mymedsbackend.medication.MedicationLog;
-import org.example.mymedsbackend.medication.MedicationLogrepo;
+import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
-import org.example.mymedsbackend.medication.Medications;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -23,9 +24,9 @@ import java.util.Map;
 public class AlertController {
 
     private final MedicationRepo medicationRepo;
-    private final MedicationLogrepo logRepo;
+    private final MedicationLogRepo logRepo;
 
-    public AlertController(MedicationRepo medicationRepo, MedicationLogrepo logRepo) {
+    public AlertController(MedicationRepo medicationRepo, MedicationLogRepo logRepo) {
         this.medicationRepo = medicationRepo;
         this.logRepo = logRepo;
     }
@@ -35,7 +36,7 @@ public class AlertController {
             @AuthenticationPrincipal UserDetails user) {
 
         String username = user.getUsername();
-        List<Medications> medications = medicationRepo.findByPatientUsername(username);
+        List<Medication> medications = medicationRepo.findByPatientUsername(username);
         List<Map<String, Object>> alerts = new ArrayList<>();
 
         LocalDate today = LocalDate.now();
@@ -49,7 +50,7 @@ public class AlertController {
                         LocalDateTime.now()
                 );
 
-        for (Medications medication : medications) {
+        for (Medication medication : medications) {
             LocalTime scheduledTime = medication.getScheduledTime();
 
             if (scheduledTime == null || !currentTime.isAfter(scheduledTime)) {

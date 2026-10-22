@@ -1,9 +1,5 @@
 <script setup>
-import {
-  computed,
-  onMounted,
-  ref,
-} from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import {
   getAdminUsers,
@@ -16,16 +12,11 @@ async function loadDoctors() {
   error.value = ''
 
   try {
-    doctors.value =
-      await getAdminUsers('DOCTOR')
+    doctors.value = await getAdminUsers('DOCTOR')
   } catch (err) {
-    console.error(
-      'Could not load doctors:',
-      err
-    )
+    console.error('Could not load doctors:', err)
 
-    error.value =
-      'Doctors could not be loaded.'
+    error.value = 'Doctors could not be loaded.'
   } finally {
     loading.value = false
   }
@@ -38,28 +29,18 @@ async function openPatientAssignment(doctor) {
   loadingAssignments.value = true
 
   try {
-    const [
-      allPatients,
-      assignedPatients,
-    ] = await Promise.all([
+    const [allPatients, assignedPatients] = await Promise.all([
       getAdminUsers('PATIENT'),
       getDoctorAssignedPatients(doctor.id),
     ])
 
     patients.value = allPatients
 
-    selectedPatientIds.value =
-      assignedPatients.map(
-        patient => patient.id
-      )
+    selectedPatientIds.value = assignedPatients.map((patient) => patient.id)
   } catch (err) {
-    console.error(
-      'Could not load doctor assignments:',
-      err
-    )
+    console.error('Could not load doctor assignments:', err)
 
-    assignmentError.value =
-      'Patient assignments could not be loaded.'
+    assignmentError.value = 'Patient assignments could not be loaded.'
   } finally {
     loadingAssignments.value = false
   }
@@ -75,22 +56,13 @@ function closePatientAssignment() {
 }
 
 function togglePatient(patientId) {
-  if (
-    selectedPatientIds.value.includes(
-      patientId
-    )
-  ) {
-    selectedPatientIds.value =
-      selectedPatientIds.value.filter(
-        id => id !== patientId
-      )
+  if (selectedPatientIds.value.includes(patientId)) {
+    selectedPatientIds.value = selectedPatientIds.value.filter((id) => id !== patientId)
 
     return
   }
 
-  selectedPatientIds.value.push(
-    patientId
-  )
+  selectedPatientIds.value.push(patientId)
 }
 
 async function saveAssignments() {
@@ -103,24 +75,15 @@ async function saveAssignments() {
   assignmentSuccess.value = ''
 
   try {
-    await updateDoctorPatientAssignments(
-      selectedDoctor.value.id,
-      selectedPatientIds.value
-    )
+    await updateDoctorPatientAssignments(selectedDoctor.value.id, selectedPatientIds.value)
 
-    assignmentSuccess.value =
-      'Patient assignments updated successfully.'
+    assignmentSuccess.value = 'Patient assignments updated successfully.'
 
     await loadDoctors()
   } catch (err) {
-    console.error(
-      'Could not update assignments:',
-      err
-    )
+    console.error('Could not update assignments:', err)
 
-    assignmentError.value =
-      err.message ||
-      'Patient assignments could not be updated.'
+    assignmentError.value = err.message || 'Patient assignments could not be updated.'
   } finally {
     savingAssignments.value = false
   }
@@ -133,11 +96,7 @@ function formatLastLogin(value) {
 
   const date = new Date(value)
 
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
+  if (Number.isNaN(date.getTime())) {
     return value
   }
 
@@ -162,26 +121,15 @@ const assignmentSuccess = ref('')
 const search = ref('')
 
 const filteredDoctors = computed(() => {
-  const value =
-    search.value
-      .trim()
-      .toLowerCase()
+  const value = search.value.trim().toLowerCase()
 
   if (!value) {
     return doctors.value
   }
 
   return doctors.value.filter(
-    doctor =>
-      doctor.username
-        ?.toLowerCase()
-        .includes(value) ||
-      doctor.email
-        ?.toLowerCase()
-        .includes(value) ||
-      doctor.specialization
-        ?.toLowerCase()
-        .includes(value)
+    (doctor) =>
+      doctor.username?.toLowerCase().includes(value) || doctor.email?.toLowerCase().includes(value),
   )
 })
 
@@ -190,51 +138,28 @@ onMounted(loadDoctors)
 
 <template>
   <section>
-    <h1 class="page-title">
-      Doctors
-    </h1>
+    <h1 class="page-title">Doctors</h1>
 
-    <p class="page-subtitle">
-      View doctors and manage their assigned patients.
-    </p>
+    <p class="page-subtitle">View doctors and manage their assigned patients.</p>
 
     <div class="patients-toolbar">
-      <h2 class="section-title">
-        Doctor List
-      </h2>
+      <h2 class="section-title">Doctor List</h2>
 
-      <input
-        v-model="search"
-        class="search-input"
-        type="text"
-        placeholder="Search doctors..."
-      />
+      <input v-model="search" class="search-input" type="text" placeholder="Search doctors..." />
     </div>
 
-    <p
-      v-if="loading"
-      class="loading-message"
-    >
-      Loading doctors...
-    </p>
+    <p v-if="loading" class="loading-message">Loading doctors...</p>
 
-    <p
-      v-else-if="error"
-      class="error-message"
-    >
+    <p v-else-if="error" class="error-message">
       {{ error }}
     </p>
 
-    <div
-      v-else
-      class="table-card"
-    >
+    <div v-else class="table-card">
       <table>
         <thead>
           <tr>
             <th>Username</th>
             <th>Email</th>
-            <th>Specialization</th>
             <th>Status</th>
             <th>Last Login</th>
             <th>Patients</th>
@@ -242,10 +167,7 @@ onMounted(loadDoctors)
         </thead>
 
         <tbody>
-          <tr
-            v-for="doctor in filteredDoctors"
-            :key="doctor.id"
-          >
+          <tr v-for="doctor in filteredDoctors" :key="doctor.id">
             <td class="patient-name">
               {{ doctor.username }}
             </td>
@@ -255,93 +177,46 @@ onMounted(loadDoctors)
             </td>
 
             <td>
-              {{
-                doctor.specialization ||
-                'Not specified'
-              }}
-            </td>
-
-            <td>
-              <span
-                class="status-badge"
-                :class="
-                  doctor.active
-                    ? 'taken'
-                    : 'missed'
-                "
-              >
+              <span class="status-badge" :class="doctor.active ? 'taken' : 'missed'">
                 <span class="status-dot"></span>
 
-                {{
-                  doctor.active
-                    ? 'Active'
-                    : 'Inactive'
-                }}
+                {{ doctor.active ? 'Active' : 'Inactive' }}
               </span>
             </td>
 
             <td>
-              {{
-                formatLastLogin(
-                  doctor.lastLoginAt
-                )
-              }}
+              {{ formatLastLogin(doctor.lastLoginAt) }}
             </td>
 
             <td>
-              <button
-                type="button"
-                class="primary-button"
-                @click="
-                  openPatientAssignment(
-                    doctor
-                  )
-                "
-              >
+              <button type="button" class="primary-button" @click="openPatientAssignment(doctor)">
                 Manage Patients
               </button>
             </td>
           </tr>
 
           <tr v-if="filteredDoctors.length === 0">
-            <td colspan="6">
-              No doctors found.
-            </td>
+            <td colspan="6">No doctors found.</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div
-      v-if="selectedDoctor"
-      class="medication-form-card"
-    >
+    <div v-if="selectedDoctor" class="medication-form-card">
       <h2>
         Patients for
         {{ selectedDoctor.username }}
       </h2>
 
       <div class="form-content">
-        <p
-          v-if="loadingAssignments"
-          class="loading-message"
-        >
-          Loading patients...
-        </p>
+        <p v-if="loadingAssignments" class="loading-message">Loading patients...</p>
 
-        <p
-          v-else-if="assignmentError"
-          class="error-message"
-        >
+        <p v-else-if="assignmentError" class="error-message">
           {{ assignmentError }}
         </p>
 
         <template v-else>
-          <div
-            v-for="patient in patients"
-            :key="patient.id"
-            class="profile-row"
-          >
+          <div v-for="patient in patients" :key="patient.id" class="profile-row">
             <div>
               <strong>
                 {{ patient.username }}
@@ -354,30 +229,14 @@ onMounted(loadDoctors)
 
             <input
               type="checkbox"
-              :checked="
-                selectedPatientIds.includes(
-                  patient.id
-                )
-              "
-              @change="
-                togglePatient(
-                  patient.id
-                )
-              "
+              :checked="selectedPatientIds.includes(patient.id)"
+              @change="togglePatient(patient.id)"
             />
           </div>
 
-          <p
-            v-if="patients.length === 0"
-            class="empty-message"
-          >
-            No patients are available.
-          </p>
+          <p v-if="patients.length === 0" class="empty-message">No patients are available.</p>
 
-          <p
-            v-if="assignmentSuccess"
-            class="success-message"
-          >
+          <p v-if="assignmentSuccess" class="success-message">
             {{ assignmentSuccess }}
           </p>
         </template>
@@ -388,24 +247,13 @@ onMounted(loadDoctors)
           <button
             type="button"
             class="primary-button"
-            :disabled="
-              savingAssignments ||
-              loadingAssignments
-            "
+            :disabled="savingAssignments || loadingAssignments"
             @click="saveAssignments"
           >
-            {{
-              savingAssignments
-                ? 'Saving...'
-                : 'Save Assignments'
-            }}
+            {{ savingAssignments ? 'Saving...' : 'Save Assignments' }}
           </button>
 
-          <button
-            type="button"
-            class="secondary-button"
-            @click="closePatientAssignment"
-          >
+          <button type="button" class="secondary-button" @click="closePatientAssignment">
             Close
           </button>
         </div>

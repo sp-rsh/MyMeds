@@ -1,9 +1,10 @@
 package org.example.mymedsbackend.user;
 
+import org.example.mymedsbackend.medication.Medication;
 import org.example.mymedsbackend.medication.MedicationLog;
-import org.example.mymedsbackend.medication.MedicationLogrepo;
+import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
-import org.example.mymedsbackend.medication.Medications;
+import org.example.mymedsbackend.util.MedicationUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,11 +16,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/doctor")
@@ -29,10 +26,10 @@ public class DoctorController {
 
     private final UserRepo userRepo;
     private final MedicationRepo medicationRepo;
-    private final MedicationLogrepo logRepo;
-    private final DoctorPatientAssignmentrepo assignmentRepo;
+    private final MedicationLogRepo logRepo;
+    private final DoctorPatientAssignmentRepo assignmentRepo;
 
-    public DoctorController(UserRepo userRepo, MedicationRepo medicationRepo, MedicationLogrepo logRepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public DoctorController(UserRepo userRepo, MedicationRepo medicationRepo, MedicationLogRepo logRepo, DoctorPatientAssignmentRepo assignmentRepo) {
         this.userRepo = userRepo;
         this.medicationRepo = medicationRepo;
         this.logRepo = logRepo;
@@ -66,12 +63,12 @@ public class DoctorController {
         int attentionNeeded = 0;
 
         for (User patient : patients) {
-            List<Medications> meds = medicationRepo.findByPatientUsername(patient.getUsername());
+            List<Medication> meds = medicationRepo.findByPatientUsername(patient.getUsername());
             dosesToday += meds.size();
             if ("Attention".equals(patientStatus(patient, meds, recentLogs))) {
                 attentionNeeded++;
             }
-            for (Medications med : meds) {
+            for (Medication med : meds) {
                 Map<String, Object> row = new LinkedHashMap<>();
                 row.put("id", med.getId());
                 row.put("patient", patient.getUsername());
@@ -102,12 +99,12 @@ public class DoctorController {
         List<MedicationLog> recentLogs = recentLogs();
         List<Map<String, Object>> rows = new ArrayList<>();
         for (User patient : patients(doctor.getId())) {
-            List<Medications> meds = medicationRepo.findByPatientUsername(patient.getUsername());
-            Medications next = nextDose(meds);
+            List<Medication> meds = medicationRepo.findByPatientUsername(patient.getUsername());
+            Medication next = MedicationUtil.nextDose(meds);
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", patient.getId());
             row.put("name", patient.getUsername());
-            row.put("patientusername", patient.getUsername());
+            row.put("patientUsername", patient.getUsername());
             row.put("medication", next == null ? "" : next.getMedicationName());
             row.put("nextDose", next == null ? "" : formatTime(next.getScheduledTime()));
             row.put("adherence", adherence(meds, recentLogs));
@@ -132,15 +129,14 @@ public class DoctorController {
         }
 
         List<MedicationLog> recentLogs = recentLogs();
-        List<Medications> meds = medicationRepo.findByPatientUsername(patient.getUsername());
+        List<Medication> meds = medicationRepo.findByPatientUsername(patient.getUsername());
         List<Map<String, Object>> medicationRows = new ArrayList<>();
-        for (Medications med : meds) {
+        for (Medication med : meds) {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", med.getId());
             row.put("name", med.getMedicationName());
             row.put("dosage", med.getDosage());
             row.put("time", formatTime(med.getScheduledTime()));
-            row.put("frequency", frequencyOf(med));
             row.put("status", medicationStatus(med, recentLogs, LocalDate.now()));
             medicationRows.add(row);
         }
@@ -155,7 +151,7 @@ public class DoctorController {
             activity.add(row);
         }
         if (activity.isEmpty()) {
-            for (Medications med : meds) {
+            for (Medication med : meds) {
                 Map<String, Object> row = new LinkedHashMap<>();
                 row.put("id", med.getId());
                 row.put("time", formatTime(med.getScheduledTime()));
@@ -168,7 +164,7 @@ public class DoctorController {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("id", patient.getId());
         body.put("name", patient.getUsername());
-        body.put("patientusername", patient.getUsername());
+        body.put("patientUsername", patient.getUsername());
         body.put("username", patient.getUsername());
         body.put("doctorName", doctor.getUsername());
         body.put("status", patientStatus(patient, meds, recentLogs));
@@ -188,7 +184,7 @@ public class DoctorController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         User patient = resolvePatient(patientId, doctor);
-        Medications med = medicationFor(patient, medicationId);
+        Medication med = medicationFor(patient, medicationId);
         if (med == null) {
             return ResponseEntity.notFound().build();
         }
@@ -201,12 +197,13 @@ public class DoctorController {
             @PathVariable String patientId,
             @PathVariable int medicationId,
             @RequestBody MedicationChange change) {
+
         User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         User patient = resolvePatient(patientId, doctor);
-        Medications med = medicationFor(patient, medicationId);
+        Medication med = medicationFor(patient, medicationId);
         if (med == null) {
             return ResponseEntity.notFound().build();
         }
@@ -216,15 +213,17 @@ public class DoctorController {
         if (change.getDosage() != null) {
             med.setDosage(change.getDosage());
         }
+
+        if (change.getTowerToDispense() != 0) {
+            med.setTowerToDispense(change.getTowerToDispense());
+        }
+
         if (change.getTime() != null && !change.getTime().isBlank()) {
             LocalTime parsed = parseTime(change.getTime());
             if (parsed == null) {
                 return ResponseEntity.badRequest().body("Time must be HH:mm");
             }
             med.setScheduledTime(parsed);
-        }
-        if (change.getFrequency() != null) {
-            med.setFrequency(change.getFrequency());
         }
         medicationRepo.save(med);
         return ResponseEntity.ok(medicationView(patient, med));
@@ -240,7 +239,7 @@ public class DoctorController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         User patient = resolvePatient(patientId, doctor);
-        Medications med = medicationFor(patient, medicationId);
+        Medication med = medicationFor(patient, medicationId);
         if (med == null) {
             return ResponseEntity.notFound().build();
         }
@@ -257,8 +256,8 @@ public class DoctorController {
         java.util.Set<String> assignedUsernames = patients(doctor.getId()).stream()
                 .map(User::getUsername)
                 .collect(java.util.stream.Collectors.toSet());
-        Map<Integer, Medications> medsById = new LinkedHashMap<>();
-        for (Medications med : medicationRepo.findAll()) {
+        Map<Integer, Medication> medsById = new LinkedHashMap<>();
+        for (Medication med : medicationRepo.findAll()) {
             medsById.put(med.getId(), med);
         }
 
@@ -267,7 +266,7 @@ public class DoctorController {
             if (!assignedUsernames.contains(log.getPatientUsername())) {
                 continue;
             }
-            Medications med = medsById.get(log.getMedicationId());
+            Medication med = medsById.get(log.getMedicationId());
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", log.getId());
             row.put("patient", log.getPatientUsername());
@@ -280,14 +279,14 @@ public class DoctorController {
         return ResponseEntity.ok(events);
     }
 
-    private Map<String, Object> medicationView(User patient, Medications med) {
+    private Map<String, Object> medicationView(User patient, Medication med) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("id", med.getId());
         body.put("patientName", patient.getUsername());
         body.put("name", med.getMedicationName());
         body.put("dosage", med.getDosage());
         body.put("time", formatTime(med.getScheduledTime()));
-        body.put("frequency", frequencyOf(med));
+        body.put("towerToDispense", med.getTowerToDispense());
         return body;
     }
 
@@ -332,7 +331,7 @@ public class DoctorController {
         return patient;
     }
 
-    private Medications medicationFor(User patient, int medicationId) {
+    private Medication medicationFor(User patient, int medicationId) {
         if (patient == null) {
             return null;
         }
@@ -368,14 +367,7 @@ public class DoctorController {
         return value.equals(role);
     }
 
-    private String frequencyOf(Medications med) {
-        if (med.getFrequency() == null || med.getFrequency().isBlank()) {
-            return "Once daily";
-        }
-        return med.getFrequency();
-    }
-
-    private String medicationStatus(Medications med, List<MedicationLog> logs, LocalDate day) {
+    private String medicationStatus(Medication med, List<MedicationLog> logs, LocalDate day) {
         for (MedicationLog log : logs) {
             if (log.getMedicationId() != med.getId() || log.getEventTime() == null) {
                 continue;
@@ -396,8 +388,8 @@ public class DoctorController {
         return "Scheduled";
     }
 
-    private String patientStatus(User patient, List<Medications> meds, List<MedicationLog> logs) {
-        for (Medications med : meds) {
+    private String patientStatus(User patient, List<Medication> meds, List<MedicationLog> logs) {
+        for (Medication med : meds) {
             if ("Missed".equals(medicationStatus(med, logs, LocalDate.now()))) {
                 return "Attention";
             }
@@ -405,7 +397,7 @@ public class DoctorController {
         return "Active";
     }
 
-    private int adherence(List<Medications> meds, List<MedicationLog> logs) {
+    private int adherence(List<Medication> meds, List<MedicationLog> logs) {
         if (meds.isEmpty()) {
             return 100;
         }
@@ -414,7 +406,7 @@ public class DoctorController {
         int taken = 0;
         for (int offset = 0; offset < 7; offset++) {
             LocalDate day = today.minusDays(offset);
-            for (Medications med : meds) {
+            for (Medication med : meds) {
                 boolean due = day.isBefore(today)
                         || (med.getScheduledTime() != null && !LocalTime.now().isBefore(med.getScheduledTime()));
                 if (!due) {
@@ -438,24 +430,6 @@ public class DoctorController {
         return (int) Math.round(taken * 100.0 / expected);
     }
 
-    private Medications nextDose(List<Medications> meds) {
-        LocalTime now = LocalTime.now();
-        Medications upcoming = null;
-        Medications earliest = null;
-        for (Medications med : meds) {
-            if (med.getScheduledTime() == null) {
-                continue;
-            }
-            if (earliest == null || med.getScheduledTime().isBefore(earliest.getScheduledTime())) {
-                earliest = med;
-            }
-            if (!med.getScheduledTime().isBefore(now)
-                    && (upcoming == null || med.getScheduledTime().isBefore(upcoming.getScheduledTime()))) {
-                upcoming = med;
-            }
-        }
-        return upcoming != null ? upcoming : earliest;
-    }
 
     private String statusFromEvent(String eventType) {
         if (eventType == null) {
@@ -502,7 +476,7 @@ public class DoctorController {
         private String name;
         private String dosage;
         private String time;
-        private String frequency;
+        private int towerToDispense = 0;
 
         public String getName() {
             return name;
@@ -528,12 +502,12 @@ public class DoctorController {
             this.time = time;
         }
 
-        public String getFrequency() {
-            return frequency;
+        public int getTowerToDispense() {
+            return towerToDispense;
         }
 
-        public void setFrequency(String frequency) {
-            this.frequency = frequency;
+        public void setTowerToDispense(int towerToDispense) {
+            this.towerToDispense = towerToDispense;
         }
     }
 }

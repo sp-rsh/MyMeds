@@ -16,14 +16,9 @@ async function handleLogin() {
   error.value = ''
 
   try {
-    const user = await login(
-      username.value,
-      password.value
-    )
+    const user = await login(username.value, password.value)
 
-    const role = String(
-      user?.role || ''
-    )
+    const role = String(user?.role || '')
       .toUpperCase()
       .replace(/^ROLE_/, '')
 
@@ -44,13 +39,9 @@ async function handleLogin() {
 
     await router.push('/unauthorized')
   } catch (err) {
-    console.error(
-      'Login failed:',
-      err
-    )
+    console.error('Login failed:', err)
 
-    error.value =
-      'Invalid username or password.'
+    error.value = 'Invalid username or password.'
   } finally {
     loading.value = false
   }
@@ -66,27 +57,16 @@ async function handleLogin() {
       <div class="login-brand">
         <span class="login-brand-dot"></span>
 
-        <span>
-          MyMeds
-        </span>
+        <span> MyMeds </span>
       </div>
 
-      <h1 class="login-title">
-        Welcome to MyMeds
-      </h1>
+      <h1 class="login-title">Welcome to MyMeds</h1>
 
-      <p class="login-subtitle">
-        Sign in to access your medication portal.
-      </p>
+      <p class="login-subtitle">Sign in to access your medication portal.</p>
 
-      <form
-        class="login-form"
-        @submit.prevent="handleLogin"
-      >
+      <form class="login-form" @submit.prevent="handleLogin">
         <div class="login-form-group">
-          <label for="username">
-            Email or Username
-          </label>
+          <label for="username"> Email or Username </label>
 
           <input
             id="username"
@@ -99,9 +79,7 @@ async function handleLogin() {
         </div>
 
         <div class="login-form-group">
-          <label for="password">
-            Password
-          </label>
+          <label for="password"> Password </label>
 
           <input
             id="password"
@@ -113,29 +91,16 @@ async function handleLogin() {
           />
         </div>
 
-        <p
-          v-if="error"
-          class="login-error-message"
-        >
+        <p v-if="error" class="login-error-message">
           {{ error }}
         </p>
 
-        <button
-          type="submit"
-          class="login-button"
-          :disabled="loading"
-        >
-          {{
-            loading
-              ? 'Logging in...'
-              : 'Log In'
-          }}
+        <button type="submit" class="login-button" :disabled="loading">
+          {{ loading ? 'Logging in...' : 'Log In' }}
         </button>
       </form>
 
-      <p class="authorized-text">
-        Authorized users only
-      </p>
+      <p class="authorized-text">Authorized users only</p>
     </div>
   </div>
 </template>

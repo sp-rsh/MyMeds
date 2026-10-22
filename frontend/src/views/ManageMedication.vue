@@ -1,53 +1,30 @@
 <script setup>
-import {
-  onMounted,
-  reactive,
-  ref,
-} from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
-import {
-  useRoute,
-  useRouter,
-} from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
-import {
-  getMedication,
-  updateMedication,
-} from '../services/api'
+import { getMedication, updateMedication } from '../services/api'
 
 async function loadMedication() {
   loading.value = true
   error.value = ''
 
   try {
-    const data =
-      await getMedication(
-        route.params.patientId,
-        route.params.medicationId
-      )
+    const data = await getMedication(route.params.patientId, route.params.medicationId)
 
-    patientName.value =
-      data.patientName || ''
+    patientName.value = data.patientName || ''
 
-    medication.name =
-      data.name || ''
+    medication.name = data.name || ''
 
-    medication.dosage =
-      data.dosage || ''
+    medication.dosage = data.dosage || ''
 
-    medication.time =
-      data.time || ''
+    medication.time = data.time || ''
 
-    medication.frequency =
-      data.frequency || ''
+    medication.towerToDispense = data.towerToDispense || ''
   } catch (err) {
-    console.error(
-      'Could not load medication:',
-      err
-    )
+    console.error('Could not load medication:', err)
 
-    error.value =
-      'Medication information could not be loaded.'
+    error.value = 'Medication information could not be loaded.'
   } finally {
     loading.value = false
   }
@@ -59,39 +36,27 @@ async function saveMedication() {
   error.value = ''
 
   try {
-    await updateMedication(
-      route.params.patientId,
-      route.params.medicationId,
-      {
-        name: medication.name,
-        dosage: medication.dosage,
-        time: medication.time,
-        frequency:
-          medication.frequency,
-      }
-    )
+    await updateMedication(route.params.patientId, route.params.medicationId, {
+      name: medication.name,
+      dosage: medication.dosage,
+      time: medication.time,
+      towerToDispense: medication.towerToDispense,
+    })
 
     saved.value = true
 
     await loadMedication()
   } catch (err) {
-    console.error(
-      'Could not update medication:',
-      err
-    )
+    console.error('Could not update medication:', err)
 
-    error.value =
-      err.message ||
-      'Medication could not be updated.'
+    error.value = err.message || 'Medication could not be updated.'
   } finally {
     saving.value = false
   }
 }
 
 function goBack() {
-  router.push(
-    `/doctor/patients/${route.params.patientId}`
-  )
+  router.push(`/doctor/patients/${route.params.patientId}`)
 }
 
 const route = useRoute()
@@ -109,7 +74,7 @@ const medication = reactive({
   name: '',
   dosage: '',
   time: '',
-  frequency: '',
+  towerToDispense: 1,
 })
 
 onMounted(loadMedication)
@@ -117,151 +82,71 @@ onMounted(loadMedication)
 
 <template>
   <section>
-    <button
-      type="button"
-      class="back-link"
-      @click="goBack"
-    >
-      ← Back to Patient Details
-    </button>
+    <button type="button" class="back-link" @click="goBack">← Back to Patient Details</button>
 
-    <h1 class="page-title">
-      Manage Medication
-    </h1>
+    <h1 class="page-title">Manage Medication</h1>
 
     <p class="page-subtitle">
       Update the medication schedule
-      <template v-if="patientName">
-        for {{ patientName }}
-      </template>.
+      <template v-if="patientName"> for {{ patientName }} </template>.
     </p>
 
-    <p
-      v-if="loading"
-      class="loading-message"
-    >
-      Loading medication...
-    </p>
+    <p v-if="loading" class="loading-message">Loading medication...</p>
 
-    <p
-      v-else-if="error"
-      class="error-message"
-    >
+    <p v-else-if="error" class="error-message">
       {{ error }}
     </p>
 
-    <div
-      v-else
-      class="medication-form-card"
-    >
-      <h2>
-        Medication Schedule
-      </h2>
+    <div v-else class="medication-form-card">
+      <h2>Medication Schedule</h2>
 
       <form @submit.prevent="saveMedication">
         <div class="form-content">
           <div class="form-group">
-            <label for="medication-name">
-              Medication Name
-            </label>
+            <label for="medication-name"> Medication Name </label>
 
-            <input
-              id="medication-name"
-              v-model="medication.name"
-              type="text"
-              required
-            />
+            <input id="medication-name" v-model="medication.name" type="text" required />
           </div>
 
           <div class="form-group">
-            <label for="medication-dosage">
-              Dosage
-            </label>
+            <label for="medication-dosage"> Dosage </label>
 
-            <input
-              id="medication-dosage"
-              v-model="medication.dosage"
-              type="text"
-              required
-            />
+            <input id="medication-dosage" v-model="medication.dosage" type="text" required />
           </div>
 
           <div class="form-group">
-            <label for="medication-time">
-              Scheduled Time
-            </label>
+            <label for="medication-time"> Scheduled Time </label>
 
-            <input
-              id="medication-time"
-              v-model="medication.time"
-              type="time"
-              required
-            />
+            <input id="medication-time" v-model="medication.time" type="time" required />
           </div>
 
           <div class="form-group">
-            <label for="medication-frequency">
-              Frequency
-            </label>
+            <label for="medication-tower_to_dispense">Tower to dispense</label>
 
-            <select
-              id="medication-frequency"
-              v-model="medication.frequency"
-              required
-            >
-              <option
-                disabled
-                value=""
-              >
-                Select frequency
-              </option>
+            <select id="medication-tower_to_dispense" v-model="medication.towerToDispense" required>
+              <option disabled value="">Select tower to dispense</option>
 
-              <option value="Once daily">
-                Once daily
-              </option>
+              <option value="1" >Tower One</option>
 
-              <option value="Twice daily">
-                Twice daily
-              </option>
+              <option value="2">Tower Two</option>
 
-              <option value="Three times daily">
-                Three times daily
-              </option>
+              <option value="3">Tower Three</option>
             </select>
           </div>
         </div>
 
         <div class="form-footer">
           <div class="form-actions">
-            <button
-              type="submit"
-              class="primary-button"
-              :disabled="saving"
-            >
-              {{
-                saving
-                  ? 'Saving...'
-                  : 'Save Changes'
-              }}
+            <button type="submit" class="primary-button" :disabled="saving">
+              {{ saving ? 'Saving...' : 'Save Changes' }}
             </button>
 
-            <button
-              type="button"
-              class="secondary-button"
-              @click="goBack"
-            >
-              Cancel
-            </button>
+            <button type="button" class="secondary-button" @click="goBack">Cancel</button>
           </div>
         </div>
       </form>
     </div>
 
-    <p
-      v-if="saved"
-      class="success-message"
-    >
-      Medication changes saved.
-    </p>
+    <p v-if="saved" class="success-message">Medication changes saved.</p>
   </section>
 </template>

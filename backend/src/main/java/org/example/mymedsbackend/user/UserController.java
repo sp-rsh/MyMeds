@@ -1,9 +1,9 @@
 package org.example.mymedsbackend.user;
 
+import org.example.mymedsbackend.medication.Medication;
 import org.example.mymedsbackend.medication.MedicationLog;
-import org.example.mymedsbackend.medication.MedicationLogrepo;
+import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
-import org.example.mymedsbackend.medication.Medications;
 import org.example.mymedsbackend.security.ResetPassword;
 import org.example.mymedsbackend.security.SecurityLogService;
 import org.springframework.http.HttpStatus;
@@ -14,13 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.LinkedHashSet;
 import java.time.LocalDateTime;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -31,16 +26,16 @@ public class UserController {
     private final UserRepo repo;
     private final PasswordEncoder passwordEncoder;
     private final MedicationRepo medicationRepo;
-    private final MedicationLogrepo logRepo;
-    private final DoctorPatientAssignmentrepo assignmentRepo;
+    private final MedicationLogRepo logRepo;
+    private final DoctorPatientAssignmentRepo assignmentRepo;
     private final SecurityLogService securityLog;
 
     public UserController(
             UserRepo repo,
             PasswordEncoder passwordEncoder,
             MedicationRepo medicationRepo,
-            MedicationLogrepo logRepo,
-            DoctorPatientAssignmentrepo assignmentRepo,
+            MedicationLogRepo logRepo,
+            DoctorPatientAssignmentRepo assignmentRepo,
             SecurityLogService securityLog) {
         this.repo = repo;
         this.passwordEncoder = passwordEncoder;
@@ -48,6 +43,24 @@ public class UserController {
         this.logRepo = logRepo;
         this.assignmentRepo = assignmentRepo;
         this.securityLog = securityLog;
+    }
+
+    static String normaliseRole(String role) {
+        String normalised = role == null ? "" : role.trim().toUpperCase(Locale.ROOT);
+        if (normalised.startsWith("ROLE_")) normalised = normalised.substring(5);
+        if (!ROLES.contains(normalised)) {
+            throw new IllegalArgumentException("Role must be ADMIN, DOCTOR, or PATIENT.");
+        }
+        return normalised;
+    }
+
+    private static String trimToNull(String value) {
+        if (value == null || value.isBlank()) return null;
+        return value.trim();
+    }
+
+    private static ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
+        return ResponseEntity.status(status).body(Map.of("message", message));
     }
 
     @GetMapping("/home")
@@ -62,6 +75,8 @@ public class UserController {
         }
         user.setLastLoginAt(LocalDateTime.now());
         repo.save(user);
+
+
         securityLog.record("Login", user.getUsername(), "Login", "Success", "Successful authentication");
         return ResponseEntity.ok("Login successful! Welcome to MyMeds API.");
     }
@@ -85,6 +100,8 @@ public class UserController {
         body.put("lastLoginAt", user.getLastLoginAt());
 
         if ("PATIENT".equals(normaliseRole(user.getRole()))) {
+            body.put("deviceKey", user.getDeviceKey());
+
             body.put("doctor", assignmentRepo.findByPatient_Id(user.getId()).stream()
                     .map(a -> a.getDoctor().getUsername())
                     .sorted(String.CASE_INSENSITIVE_ORDER)
@@ -208,11 +225,11 @@ public class UserController {
             return error(HttpStatus.CONFLICT, "That email address is already in use.");
         }
 
-        user.setId(0);
         user.setUsername(username);
         user.setEmail(email);
         user.setRole(role);
         user.setPassword(passwordEncoder.encode(password));
+        user.setDeviceKey(username + "_" + UUID.randomUUID().toString().replace("-", ""));
         user.setActive(true);
         User saved = repo.save(user);
         securityLog.recordAsCurrentUser("Account created", "Account", "Success", role + " account " + saved.getUsername());
@@ -279,7 +296,7 @@ public class UserController {
             clearAssignments(user);
         }
         if (!previousUsername.equals(username)) {
-            List<Medications> medicines = medicationRepo.findByPatientUsername(previousUsername);
+            List<Medication> medicines = medicationRepo.findByPatientUsername(previousUsername);
             medicines.forEach(medicine -> medicine.setPatientUsername(username));
             medicationRepo.saveAll(medicines);
             List<MedicationLog> logs = logRepo.findByPatientUsernameOrderByEventTimeDesc(previousUsername);
@@ -370,16 +387,6 @@ public class UserController {
         return ResponseEntity.ok("Password updated successfully!");
     }
 
-    static String normaliseRole(String role) {
-        String normalised = role == null ? "" : role.trim().toUpperCase(Locale.ROOT);
-        if (normalised.startsWith("ROLE_")) normalised = normalised.substring(5);
-        if (!ROLES.contains(normalised)) {
-            throw new IllegalArgumentException("Role must be ADMIN, DOCTOR, or PATIENT.");
-        }
-        return normalised;
-    }
-
-
     private UserAdminResponse userResponse(User user) {
         String role = normaliseRole(user.getRole());
         int medicationCount = "PATIENT".equals(role)
@@ -405,14 +412,5 @@ public class UserController {
                 .filter(User::isActive)
                 .filter(user -> "ADMIN".equals(normaliseRole(user.getRole())))
                 .count();
-    }
-
-    private static String trimToNull(String value) {
-        if (value == null || value.isBlank()) return null;
-        return value.trim();
-    }
-
-    private static ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
-        return ResponseEntity.status(status).body(Map.of("message", message));
     }
 }

@@ -1,13 +1,14 @@
 package org.example.mymedsbackend.medication;
 
-import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.DoctorPatientAssignment;
-import org.example.mymedsbackend.user.DoctorPatientAssignmentrepo;
+import org.example.mymedsbackend.user.DoctorPatientAssignmentRepo;
+import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.UserRepo;
+import org.example.mymedsbackend.util.MedicationUtil;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -18,31 +19,32 @@ import java.util.List;
 public class MedicationController {
     private final MedicationRepo medicationRepo;
     private final UserRepo userRepo;
-    private final DoctorPatientAssignmentrepo assignmentRepo;
+    private final DoctorPatientAssignmentRepo assignmentRepo;
 
 
-    public MedicationController(MedicationRepo medicationRepo, UserRepo drepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public MedicationController(MedicationRepo medicationRepo, UserRepo drepo, DoctorPatientAssignmentRepo assignmentRepo) {
         this.medicationRepo = medicationRepo;
         this.userRepo = drepo;
         this.assignmentRepo = assignmentRepo;
     }
+
     @PostMapping
-    public ResponseEntity<?> addMedications(@RequestBody Medications medications, @AuthenticationPrincipal UserDetails principal){
+    public ResponseEntity<?> addMedication(@RequestBody Medication Medication, @AuthenticationPrincipal UserDetails principal) {
         User doctor = currentDoctor(principal);
-        User patient = medications.getPatientUsername() == null ? null : userRepo.findByUsername(medications.getPatientUsername());
+        User patient = Medication.getPatientUsername() == null ? null : userRepo.findByUsername(Medication.getPatientUsername());
+
+
         if (doctor == null || patient == null || !isPatient(patient) || !patient.isActive()
                 || !assignmentRepo.existsByDoctor_IdAndPatient_Id(doctor.getId(), patient.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Patient is not assigned to this doctor.");
         }
-        if (medications.getFrequency() == null || medications.getFrequency().isBlank()) {
-            medications.setFrequency("Once daily");
-        }
-        medicationRepo.save(medications);
-        return ResponseEntity.ok("Successfully added " + medications.getMedicationName());
+        medicationRepo.save(Medication);
+        return ResponseEntity.ok("Successfully added " + Medication.getMedicationName());
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMedication(@PathVariable int id, @AuthenticationPrincipal UserDetails principal) {
-        Medications existing = medicationRepo.findById(id).orElse(null);
+        Medication existing = medicationRepo.findById(id).orElse(null);
         if (existing == null) {
             return ResponseEntity.status(404).body("Medication not found");
         }
@@ -56,8 +58,8 @@ public class MedicationController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateMedication(@PathVariable int id, @RequestBody Medications incoming, @AuthenticationPrincipal UserDetails principal) {
-        Medications existing = medicationRepo.findById(id).orElse(null);
+    public ResponseEntity<?> updateMedication(@PathVariable int id, @RequestBody Medication incoming, @AuthenticationPrincipal UserDetails principal) {
+        Medication existing = medicationRepo.findById(id).orElse(null);
         if (existing == null) {
             return ResponseEntity.status(404).body("Medication not found");
         }
@@ -81,21 +83,23 @@ public class MedicationController {
         if (incoming.getScheduledTime() != null) {
             existing.setScheduledTime(incoming.getScheduledTime());
         }
-        if (incoming.getFrequency() != null) {
-            existing.setFrequency(incoming.getFrequency());
+        if (incoming.getTowerToDispense() != 0) {
+            existing.setTowerToDispense(incoming.getTowerToDispense());
         }
         if (incoming.getPatientUsername() != null) {
             existing.setPatientUsername(incoming.getPatientUsername());
         }
         return ResponseEntity.ok(medicationRepo.save(existing));
     }
+
     @GetMapping("/my")
-    public ResponseEntity<List<Medications>> getMyMedications(@AuthenticationPrincipal UserDetails user) {
-        List<Medications> myMeds = medicationRepo.findByPatientUsername(user.getUsername());
+    public ResponseEntity<List<Medication>> getMyMedication(@AuthenticationPrincipal UserDetails user) {
+        List<Medication> myMeds = medicationRepo.findByPatientUsername(user.getUsername());
         return ResponseEntity.ok(myMeds);
     }
+
     @GetMapping("/patients")
-    public ResponseEntity<List<PatientMedicationsResponse>> getAllPatientsWithMedications(@AuthenticationPrincipal UserDetails principal) {
+    public ResponseEntity<List<PatientMedicationsResponse>> getAllPatientsWithMedication(@AuthenticationPrincipal UserDetails principal) {
         User doctor = currentDoctor(principal);
         List<User> patients = new ArrayList<>();
         if (doctor != null) {
@@ -106,7 +110,7 @@ public class MedicationController {
         }
         List<PatientMedicationsResponse> responseList = new ArrayList<>();
         for (User patient : patients) {
-            List<Medications> meds = medicationRepo.findByPatientUsername(patient.getUsername());
+            List<Medication> meds = medicationRepo.findByPatientUsername(patient.getUsername());
             responseList.add(new PatientMedicationsResponse(
                     patient.getUsername(),
                     patient.getEmail(),
@@ -115,6 +119,20 @@ public class MedicationController {
         }
         return ResponseEntity.ok(responseList);
     }
+
+
+    @GetMapping("/next")
+    public ResponseEntity<Medication> getNextMedicine(@AuthenticationPrincipal UserDetails user) {
+        List<Medication> myMeds = medicationRepo.findByPatientUsername(user.getUsername());
+        Medication nextMedication = MedicationUtil.nextDose(myMeds);
+
+        if (nextMedication == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(nextMedication);
+    }
+
 
     private User currentDoctor(UserDetails principal) {
         if (principal == null) return null;

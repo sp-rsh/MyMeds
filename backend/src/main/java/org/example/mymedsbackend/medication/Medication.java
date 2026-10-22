@@ -4,10 +4,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+
 import java.time.LocalTime;
 
 @Entity
-public class Medications {
+public class Medication {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,16 +17,9 @@ public class Medications {
     private String patientUsername;
     private String medicationName;
     private String dosage;
+
     private LocalTime scheduledTime;
-    private String frequency;
-
-    public String getFrequency() {
-        return frequency;
-    }
-
-    public void setFrequency(String frequency) {
-        this.frequency = frequency;
-    }
+    private int towerToDispense = 0;
 
     public int getId() {
         return id;
@@ -66,5 +60,13 @@ public class Medications {
 
     public void setScheduledTime(LocalTime scheduledTime) {
         this.scheduledTime = scheduledTime;
+    }
+
+    public int getTowerToDispense() {
+        return towerToDispense;
+    }
+
+    public void setTowerToDispense(int towerToDispense) {
+        this.towerToDispense = towerToDispense;
     }
 }

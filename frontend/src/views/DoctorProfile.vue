@@ -1,29 +1,18 @@
 <script setup>
-import {
-  onMounted,
-  ref,
-} from 'vue'
+import { onMounted, ref } from 'vue'
 
-import {
-  changePassword,
-  getCurrentDoctor,
-} from '../services/api'
+import { changePassword, getCurrentDoctor } from '../services/api'
 
 async function loadDoctor() {
   loading.value = true
   error.value = ''
 
   try {
-    doctor.value =
-      await getCurrentDoctor()
+    doctor.value = await getCurrentDoctor()
   } catch (err) {
-    console.error(
-      'Could not load doctor profile:',
-      err
-    )
+    console.error('Could not load doctor profile:', err)
 
-    error.value =
-      'Your profile could not be loaded.'
+    error.value = 'Your profile could not be loaded.'
   } finally {
     loading.value = false
   }
@@ -33,32 +22,20 @@ async function handlePasswordChange() {
   passwordError.value = ''
   passwordMessage.value = ''
 
-  if (
-    !currentPassword.value ||
-    !newPassword.value ||
-    !confirmPassword.value
-  ) {
-    passwordError.value =
-      'Please complete all password fields.'
+  if (!currentPassword.value || !newPassword.value || !confirmPassword.value) {
+    passwordError.value = 'Please complete all password fields.'
 
     return
   }
 
-  if (
-    newPassword.value !==
-    confirmPassword.value
-  ) {
-    passwordError.value =
-      'The new passwords do not match.'
+  if (newPassword.value !== confirmPassword.value) {
+    passwordError.value = 'The new passwords do not match.'
 
     return
   }
 
-  if (
-    newPassword.value.length < 8
-  ) {
-    passwordError.value =
-      'The new password must contain at least 8 characters.'
+  if (newPassword.value.length < 8) {
+    passwordError.value = 'The new password must contain at least 8 characters.'
 
     return
   }
@@ -66,26 +43,17 @@ async function handlePasswordChange() {
   changingPassword.value = true
 
   try {
-    await changePassword(
-      currentPassword.value,
-      newPassword.value
-    )
+    await changePassword(currentPassword.value, newPassword.value)
 
     currentPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
 
-    passwordMessage.value =
-      'Password changed successfully.'
+    passwordMessage.value = 'Password changed successfully.'
   } catch (err) {
-    console.error(
-      'Could not change password:',
-      err
-    )
+    console.error('Could not change password:', err)
 
-    passwordError.value =
-      err.message ||
-      'Password could not be changed.'
+    passwordError.value = err.message || 'Password could not be changed.'
   } finally {
     changingPassword.value = false
   }
@@ -110,33 +78,19 @@ onMounted(loadDoctor)
 
 <template>
   <section>
-    <h1 class="page-title">
-      My Profile
-    </h1>
+    <h1 class="page-title">My Profile</h1>
 
-    <p class="page-subtitle">
-      Doctor account information.
-    </p>
+    <p class="page-subtitle">Doctor account information.</p>
 
-    <p
-      v-if="loading"
-      class="loading-message"
-    >
-      Loading profile...
-    </p>
+    <p v-if="loading" class="loading-message">Loading profile...</p>
 
-    <p
-      v-else-if="error"
-      class="error-message"
-    >
+    <p v-else-if="error" class="error-message">
       {{ error }}
     </p>
 
     <template v-else-if="doctor">
       <div class="profile-header">
-        <div class="profile-avatar">
-          👤
-        </div>
+        <div class="profile-avatar">👤</div>
 
         <div>
           <h2>
@@ -150,14 +104,10 @@ onMounted(loadDoctor)
       </div>
 
       <div class="profile-card">
-        <h3>
-          PROFESSIONAL INFORMATION
-        </h3>
+        <h3>PROFESSIONAL INFORMATION</h3>
 
         <div class="profile-row">
-          <span>
-            Name
-          </span>
+          <span> Name </span>
 
           <strong>
             {{ doctor.name }}
@@ -165,9 +115,7 @@ onMounted(loadDoctor)
         </div>
 
         <div class="profile-row">
-          <span>
-            Role
-          </span>
+          <span> Role </span>
 
           <strong>
             {{ doctor.role }}
@@ -175,9 +123,7 @@ onMounted(loadDoctor)
         </div>
 
         <div class="profile-row">
-          <span>
-            Email
-          </span>
+          <span> Email </span>
 
           <strong>
             {{ doctor.email }}
@@ -186,20 +132,12 @@ onMounted(loadDoctor)
       </div>
 
       <div class="medication-form-card">
-        <h2>
-          Change Password
-        </h2>
+        <h2>Change Password</h2>
 
-        <form
-          @submit.prevent="
-            handlePasswordChange
-          "
-        >
+        <form @submit.prevent="handlePasswordChange">
           <div class="form-content">
             <div class="form-group">
-              <label for="doctor-current-password">
-                Current Password
-              </label>
+              <label for="doctor-current-password"> Current Password </label>
 
               <input
                 id="doctor-current-password"
@@ -211,9 +149,7 @@ onMounted(loadDoctor)
             </div>
 
             <div class="form-group">
-              <label for="doctor-new-password">
-                New Password
-              </label>
+              <label for="doctor-new-password"> New Password </label>
 
               <input
                 id="doctor-new-password"
@@ -226,9 +162,7 @@ onMounted(loadDoctor)
             </div>
 
             <div class="form-group">
-              <label for="doctor-confirm-password">
-                Confirm New Password
-              </label>
+              <label for="doctor-confirm-password"> Confirm New Password </label>
 
               <input
                 id="doctor-confirm-password"
@@ -240,32 +174,18 @@ onMounted(loadDoctor)
               />
             </div>
 
-            <p
-              v-if="passwordError"
-              class="error-message"
-            >
+            <p v-if="passwordError" class="error-message">
               {{ passwordError }}
             </p>
 
-            <p
-              v-if="passwordMessage"
-              class="success-message"
-            >
+            <p v-if="passwordMessage" class="success-message">
               {{ passwordMessage }}
             </p>
           </div>
 
           <div class="form-footer">
-            <button
-              type="submit"
-              class="primary-button"
-              :disabled="changingPassword"
-            >
-              {{
-                changingPassword
-                  ? 'Changing...'
-                  : 'Change Password'
-              }}
+            <button type="submit" class="primary-button" :disabled="changingPassword">
+              {{ changingPassword ? 'Changing...' : 'Change Password' }}
             </button>
           </div>
         </form>
