@@ -8,6 +8,7 @@ public class Config
     public string API_DOMAIN {get; private set;} = "PLACEHOLDER";
     public string API_GETEVENT {get; private set;} = "cspi/getNextEvent";
     public string API_POSTEVENT {get;private set;} = "cspi/postEvent";
+    public string API_TOKEN {get; private set; } = "NULL";
     public string FINGERPRINT_PORT  {get; private set;} = "/dev/ttyAMA2";
     public int[] SERVO_PINS {get;private set;} = [14];
     public int SERVO_LOCKEDANGLE {get; private set;} = 0;
@@ -27,6 +28,7 @@ public class Config
             API_DOMAIN = api.Element("Domain")?.Value??API_DOMAIN;
             API_GETEVENT = api.Element("getEvent")?.Value??API_GETEVENT;
             API_POSTEVENT = api.Element("postEvent")?.Value??API_POSTEVENT;
+            API_TOKEN = api.Element("Token")?.Value??API_TOKEN;
             if(!API_DOMAIN.EndsWith('/'))
                 API_DOMAIN += '/';
         }
@@ -45,7 +47,8 @@ public class Config
         config.Root?.Add(new XElement("API",
             new XElement("Domain", API_DOMAIN),
             new XElement("getEvent", API_GETEVENT),
-            new XElement("postEvent", API_POSTEVENT)
+            new XElement("postEvent", API_POSTEVENT),
+            new XElement("Token", API_TOKEN)
         ));
         config.Root?.Add(new XElement("Fingerprint_Port", FINGERPRINT_PORT));
         config.Root?.Add(new XElement("Servos",

@@ -11,6 +11,7 @@ public class WebAPI
         CONFIG = config;
         client = new();
         client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CONFIG.API_TOKEN);
     }
     public async Task<DispenseEvent?> GetNextDispenseEvent()
     {
