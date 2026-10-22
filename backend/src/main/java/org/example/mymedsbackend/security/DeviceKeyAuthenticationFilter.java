@@ -3,10 +3,14 @@ package org.example.mymedsbackend.security;
 import jakarta.servlet.http.HttpServletRequest;
 import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.UserRepo;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class DeviceKeyAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
@@ -26,10 +30,14 @@ public class DeviceKeyAuthenticationFilter extends AbstractPreAuthenticatedProce
             }
 
             SecurityCredentials credentials = new SecurityCredentials(user);
+
+            List<GrantedAuthority> authorities = new ArrayList<>(credentials.getAuthorities());
+            authorities.add(new SimpleGrantedAuthority("ROLE_API")); // so we can differentiate device requests from user
+
             return new PreAuthenticatedAuthenticationToken(
                     credentials,
                     null,
-                    credentials.getAuthorities()
+                    authorities
             );
         });
     }

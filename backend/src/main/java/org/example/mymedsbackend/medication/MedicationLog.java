@@ -17,6 +17,7 @@ public class MedicationLog {
     private int medicationId;
     private String patientUsername;
     private String medicationName;
+
     private String eventType;
     private LocalDateTime eventTime;
     private String details;

@@ -12,10 +12,11 @@ public class MyUserDetailsService implements UserDetailsService {
 
     @Autowired
     private UserRepo repo;
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = repo.findByUsername(username);
-        if(user ==null){
+        if (user == null) {
             throw new UsernameNotFoundException("User not found");
         }
         return new SecurityCredentials(user);

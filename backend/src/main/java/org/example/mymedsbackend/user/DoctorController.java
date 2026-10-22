@@ -4,6 +4,7 @@ import org.example.mymedsbackend.medication.MedicationLog;
 import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
 import org.example.mymedsbackend.medication.Medication;
+import org.example.mymedsbackend.util.MedicationUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -103,7 +104,7 @@ public class DoctorController {
         List<Map<String, Object>> rows = new ArrayList<>();
         for (User patient : patients(doctor.getId())) {
             List<Medication> meds = medicationRepo.findByPatientUsername(patient.getUsername());
-            Medication next = nextDose(meds);
+            Medication next = MedicationUtil.nextDose(meds);
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", patient.getId());
             row.put("name", patient.getUsername());
@@ -370,7 +371,6 @@ public class DoctorController {
         return value.equals(role);
     }
 
-
     private String medicationStatus(Medication med, List<MedicationLog> logs, LocalDate day) {
         for (MedicationLog log : logs) {
             if (log.getMedicationId() != med.getId() || log.getEventTime() == null) {
@@ -434,24 +434,7 @@ public class DoctorController {
         return (int) Math.round(taken * 100.0 / expected);
     }
 
-    private Medication nextDose(List<Medication> meds) {
-        LocalTime now = LocalTime.now();
-        Medication upcoming = null;
-        Medication earliest = null;
-        for (Medication med : meds) {
-            if (med.getScheduledTime() == null) {
-                continue;
-            }
-            if (earliest == null || med.getScheduledTime().isBefore(earliest.getScheduledTime())) {
-                earliest = med;
-            }
-            if (!med.getScheduledTime().isBefore(now)
-                    && (upcoming == null || med.getScheduledTime().isBefore(upcoming.getScheduledTime()))) {
-                upcoming = med;
-            }
-        }
-        return upcoming != null ? upcoming : earliest;
-    }
+
 
     private String statusFromEvent(String eventType) {
         if (eventType == null) {

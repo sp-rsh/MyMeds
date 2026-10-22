@@ -4,6 +4,7 @@ import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.DoctorPatientAssignment;
 import org.example.mymedsbackend.user.DoctorPatientAssignmentRepo;
 import org.example.mymedsbackend.user.UserRepo;
+import org.example.mymedsbackend.util.MedicationUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -118,6 +119,20 @@ public class MedicationController {
         }
         return ResponseEntity.ok(responseList);
     }
+
+
+    @GetMapping("/next")
+    public ResponseEntity<Medication> getNextMedicine(@AuthenticationPrincipal UserDetails user) {
+        List<Medication> myMeds = medicationRepo.findByPatientUsername(user.getUsername());
+        Medication nextMedication = MedicationUtil.nextDose(myMeds);
+
+        if (nextMedication == null) {
+            return ResponseEntity.noContent().build();
+        }
+
+        return ResponseEntity.ok(nextMedication);
+    }
+
 
     private User currentDoctor(UserDetails principal) {
         if (principal == null) return null;
