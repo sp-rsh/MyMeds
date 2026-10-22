@@ -47,7 +47,7 @@ public class WebAPI
             {
                 { "eventID", dEvent.eventID },
                 { "hasDispensed", dEvent.hasDispensed },
-                { "dispenseTime", dEvent.dispensedTime }
+                { "dispenseAtTime", dEvent.dispensedTime }
             };
             HttpResponseMessage res = await client.PostAsync(CONFIG.API_DOMAIN + CONFIG.API_POSTEVENT, new StringContent(json.ToString(), Encoding.UTF8, "application/json"));
             Console.WriteLine($"{nameof(WebAPI)}.{nameof(PostDispenseEventAsync)}: Post returend: [{res.StatusCode}] {res.Content}");
@@ -63,6 +63,7 @@ public class WebAPI
         Console.WriteLine($"{nameof(WebAPI)}.{nameof(GetNextEvent_PLACEHOLDER)} returned placeholder event!");
         return new()
         {
+            eventID = -1,
             hasDispensed = false,
             targetTime = DateTime.UtcNow.AddSeconds(30),
             targetTimeBuffer = new(0,0,30),
