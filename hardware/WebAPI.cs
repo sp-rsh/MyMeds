@@ -1,4 +1,7 @@
+using System.Buffers.Text;
 using System.Net.Http.Headers;
+using System.Text;
+using System.Text.Json.Nodes;
 
 namespace CSP_Hardware;
 
@@ -11,6 +14,9 @@ public class WebAPI
         CONFIG = config;
         client = new();
         client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
+            "Authorization",
+            "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes($"{CONFIG.API_DEVICENAME}:{CONFIG.API_TOKEN}")));
     }
     public async Task<DispenseEvent?> GetNextDispenseEvent()
     {
@@ -28,14 +34,29 @@ public class WebAPI
         }
         throw new NotImplementedException($"{nameof(WebAPI)}.{nameof(GetNextDispenseEvent)} not implemented for Non-Placeholders");
     }
-    public bool PostDispenseEvent(DispenseEvent dEvent)
+    public async Task<bool> PostDispenseEventAsync(DispenseEvent dEvent)
     {
         if(CONFIG.API_DOMAIN == "PLACEHOLDER/" || CONFIG.API_POSTEVENT == "PLACEHOLDER")
         {
-            Console.WriteLine($"{nameof(WebAPI)}.{nameof(PostDispenseEvent)} used PLACEHOLDER for POST (hasDispensed: {dEvent.hasDispensed}; time: {dEvent.dispensedTime})");
+            Console.WriteLine($"{nameof(WebAPI)}.{nameof(PostDispenseEventAsync)} used PLACEHOLDER for POST (hasDispensed: {dEvent.hasDispensed}; time: {dEvent.dispensedTime})");
             return true;
         }
-        throw new NotImplementedException($"{nameof(WebAPI)}.{nameof(PostDispenseEvent)} not implemented for Non-Placeholders");
+        try
+        {
+            JsonObject json = new()
+            {
+                { "eventID", dEvent.eventID },
+                { "hasDispensed", dEvent.hasDispensed },
+                { "dispenseTime", dEvent.dispensedTime }
+            };
+            HttpResponseMessage res = await client.PostAsync(CONFIG.API_DOMAIN + CONFIG.API_POSTEVENT, new StringContent(json.ToString(), Encoding.UTF8, "application/json"));
+            Console.WriteLine($"{nameof(WebAPI)}.{nameof(PostDispenseEventAsync)}: Post returend: [{res.StatusCode}] {res.Content}");
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"[ERROR] {nameof(WebAPI)}.{nameof(PostDispenseEventAsync)}: {e.Message} at {e.StackTrace}");
+        }
+        throw new NotImplementedException($"{nameof(WebAPI)}.{nameof(PostDispenseEventAsync)} not implemented for Non-Placeholders");
     }
     DispenseEvent GetNextEvent_PLACEHOLDER()
     {
