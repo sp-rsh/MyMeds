@@ -7,5 +7,5 @@ public struct DispenseEvent
     public DateTime targetTime;
     public TimeSpan targetTimeBuffer;
     public DateTime? dispensedTime;
-    public bool[] dispenseRow;
+    public int dispenseRow;
 }

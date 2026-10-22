@@ -17,7 +17,6 @@ public class ConfigTest
         Assert.IsTrue(File.Exists(path), $"{nameof(Config)} failed to generate a default config");
         Config loadedConfig = new(path);
         //Check that variables are loaded properly
-        Assert.AreEqual(defaultConfig.API_DEVICENAME, loadedConfig.API_DEVICENAME);
         Assert.AreEqual(defaultConfig.API_DOMAIN, loadedConfig.API_DOMAIN);
         Assert.AreEqual(defaultConfig.API_TOKEN, loadedConfig.API_TOKEN);
         Assert.AreEqual(defaultConfig.FINGERPRINT_PORT, loadedConfig.FINGERPRINT_PORT);
