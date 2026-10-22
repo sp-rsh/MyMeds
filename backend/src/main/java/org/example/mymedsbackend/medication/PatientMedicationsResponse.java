@@ -1,4 +1,4 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.medication;
 
 import java.util.List;
 

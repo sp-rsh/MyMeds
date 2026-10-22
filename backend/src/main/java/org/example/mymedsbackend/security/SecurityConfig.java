@@ -1,4 +1,4 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,8 +9,10 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password4j.Argon2Password4jPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
@@ -33,7 +35,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return  Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
     }
 
     @Bean
@@ -71,7 +73,8 @@ public class SecurityConfig {
                             "Access",
                             "Blocked",
                             request.getMethod() + " " + request.getRequestURI());
-                    response.setStatus(HttpStatus.FORBIDDEN.value());
+
+                    response.sendError(HttpStatus.FORBIDDEN.value(), "Unauthorized");
                 }))
                 .httpBasic(basic -> basic
                         .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));

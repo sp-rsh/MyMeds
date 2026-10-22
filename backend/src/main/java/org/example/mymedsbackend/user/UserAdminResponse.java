@@ -1,4 +1,4 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.user;
 
 import java.time.LocalDateTime;
 
@@ -13,10 +13,9 @@ public record UserAdminResponse(
         int medications,
         int assignedPatients,
         LocalDateTime lastLoginAt,
-        String specialization,
         String doctor
 ) {
-    public static UserAdminResponse from(Credentials user, int medicationCount, int assignedPatientCount, String doctor) {
+    public static UserAdminResponse from(User user, int medicationCount, int assignedPatientCount, String doctor) {
         return new UserAdminResponse(
                 user.getId(),
                 user.getUsername(),
@@ -28,7 +27,6 @@ public record UserAdminResponse(
                 medicationCount,
                 assignedPatientCount,
                 user.getLastLoginAt(),
-                user.getSpecialization(),
                 doctor
         );
     }

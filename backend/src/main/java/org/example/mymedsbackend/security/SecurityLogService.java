@@ -1,4 +1,4 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.security;
 
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationFailureEvent;

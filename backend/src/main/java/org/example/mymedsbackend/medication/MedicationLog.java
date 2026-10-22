@@ -1,5 +1,5 @@
 
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.medication;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +15,7 @@ public class MedicationLog {
     private int id;
 
     private int medicationId;
-    private String patientusername;
+    private String patientUsername;
     private String medicationName;
     private String eventType;
     private LocalDateTime eventTime;
@@ -37,12 +37,12 @@ public class MedicationLog {
         this.medicationId = medicationId;
     }
 
-    public String getPatientusername() {
-        return patientusername;
+    public String getPatientUsername() {
+        return patientUsername;
     }
 
-    public void setPatientusername(String patientusername) {
-        this.patientusername = patientusername;
+    public void setPatientUsername(String patientUsername) {
+        this.patientUsername = patientUsername;
     }
 
     public String getMedicationName() {
