@@ -16,6 +16,8 @@ public class Config
     public int SERVO_RETRACTANGLE {get;private set;} = 140;
     public Config(string path)
     {
+        if(path.StartsWith("~"))
+            path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), path[2..]);
         if(!File.Exists(path))
             CreateDefault(path);
         LoadConfig(path);
