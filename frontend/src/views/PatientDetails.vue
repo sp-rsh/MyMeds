@@ -41,8 +41,6 @@ function openAddMedication() {
   newMedication.name = ''
   newMedication.dosage = ''
   newMedication.time = ''
-  newMedication.frequency =
-    'Once daily'
 
   medicationError.value = ''
   showAddMedication.value = true
@@ -67,8 +65,6 @@ async function addMedicationToPatient() {
         newMedication.dosage,
       scheduledTime:
         newMedication.time,
-      frequency:
-        newMedication.frequency,
     })
 
     closeAddMedication()
@@ -150,7 +146,6 @@ const newMedication = reactive({
   name: '',
   dosage: '',
   time: '',
-  frequency: 'Once daily',
 })
 
 onMounted(loadPatient)
@@ -302,30 +297,6 @@ onMounted(loadPatient)
               />
             </div>
 
-            <div class="form-group">
-              <label for="new-medication-frequency">
-                Frequency
-              </label>
-
-              <select
-                id="new-medication-frequency"
-                v-model="newMedication.frequency"
-                required
-              >
-                <option value="Once daily">
-                  Once daily
-                </option>
-
-                <option value="Twice daily">
-                  Twice daily
-                </option>
-
-                <option value="Three times daily">
-                  Three times daily
-                </option>
-              </select>
-            </div>
-
             <p
               v-if="medicationError"
               class="error-message"
@@ -377,7 +348,6 @@ onMounted(loadPatient)
               <th>Medication</th>
               <th>Dosage</th>
               <th>Scheduled</th>
-              <th>Frequency</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
@@ -400,9 +370,7 @@ onMounted(loadPatient)
                 {{ medication.time }}
               </td>
 
-              <td>
-                {{ medication.frequency }}
-              </td>
+
 
               <td>
                 <span

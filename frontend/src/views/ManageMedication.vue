@@ -38,8 +38,6 @@ async function loadMedication() {
     medication.time =
       data.time || ''
 
-    medication.frequency =
-      data.frequency || ''
   } catch (err) {
     console.error(
       'Could not load medication:',
@@ -66,8 +64,6 @@ async function saveMedication() {
         name: medication.name,
         dosage: medication.dosage,
         time: medication.time,
-        frequency:
-          medication.frequency,
       }
     )
 
@@ -109,7 +105,6 @@ const medication = reactive({
   name: '',
   dosage: '',
   time: '',
-  frequency: '',
 })
 
 onMounted(loadMedication)
@@ -197,37 +192,6 @@ onMounted(loadMedication)
               type="time"
               required
             />
-          </div>
-
-          <div class="form-group">
-            <label for="medication-frequency">
-              Frequency
-            </label>
-
-            <select
-              id="medication-frequency"
-              v-model="medication.frequency"
-              required
-            >
-              <option
-                disabled
-                value=""
-              >
-                Select frequency
-              </option>
-
-              <option value="Once daily">
-                Once daily
-              </option>
-
-              <option value="Twice daily">
-                Twice daily
-              </option>
-
-              <option value="Three times daily">
-                Three times daily
-              </option>
-            </select>
           </div>
         </div>
 

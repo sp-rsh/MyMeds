@@ -98,7 +98,6 @@ onMounted(loadMedications)
               <th>Medication</th>
               <th>Dosage</th>
               <th>Time</th>
-              <th>Frequency</th>
             </tr>
           </thead>
 
@@ -127,15 +126,6 @@ onMounted(loadMedications)
                   )
                 }}
               </td>
-
-
-              <td>
-                {{
-                  medication.frequency ||
-                  'Once daily'
-                }}
-              </td>
-
             </tr>
 
           </tbody>

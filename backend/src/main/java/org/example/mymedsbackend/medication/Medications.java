@@ -17,15 +17,6 @@ public class Medications {
     private String medicationName;
     private String dosage;
     private LocalTime scheduledTime;
-    private String frequency;
-
-    public String getFrequency() {
-        return frequency;
-    }
-
-    public void setFrequency(String frequency) {
-        this.frequency = frequency;
-    }
 
     public int getId() {
         return id;

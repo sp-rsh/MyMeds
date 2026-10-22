@@ -140,7 +140,6 @@ public class DoctorController {
             row.put("name", med.getMedicationName());
             row.put("dosage", med.getDosage());
             row.put("time", formatTime(med.getScheduledTime()));
-            row.put("frequency", frequencyOf(med));
             row.put("status", medicationStatus(med, recentLogs, LocalDate.now()));
             medicationRows.add(row);
         }
@@ -223,9 +222,6 @@ public class DoctorController {
             }
             med.setScheduledTime(parsed);
         }
-        if (change.getFrequency() != null) {
-            med.setFrequency(change.getFrequency());
-        }
         medicationRepo.save(med);
         return ResponseEntity.ok(medicationView(patient, med));
     }
@@ -287,7 +283,6 @@ public class DoctorController {
         body.put("name", med.getMedicationName());
         body.put("dosage", med.getDosage());
         body.put("time", formatTime(med.getScheduledTime()));
-        body.put("frequency", frequencyOf(med));
         return body;
     }
 
@@ -368,12 +363,6 @@ public class DoctorController {
         return value.equals(role);
     }
 
-    private String frequencyOf(Medications med) {
-        if (med.getFrequency() == null || med.getFrequency().isBlank()) {
-            return "Once daily";
-        }
-        return med.getFrequency();
-    }
 
     private String medicationStatus(Medications med, List<MedicationLog> logs, LocalDate day) {
         for (MedicationLog log : logs) {
@@ -502,7 +491,6 @@ public class DoctorController {
         private String name;
         private String dosage;
         private String time;
-        private String frequency;
 
         public String getName() {
             return name;
@@ -528,12 +516,5 @@ public class DoctorController {
             this.time = time;
         }
 
-        public String getFrequency() {
-            return frequency;
-        }
-
-        public void setFrequency(String frequency) {
-            this.frequency = frequency;
-        }
     }
 }

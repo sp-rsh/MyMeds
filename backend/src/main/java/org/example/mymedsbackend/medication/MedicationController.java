@@ -34,9 +34,6 @@ public class MedicationController {
                 || !assignmentRepo.existsByDoctor_IdAndPatient_Id(doctor.getId(), patient.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Patient is not assigned to this doctor.");
         }
-        if (medications.getFrequency() == null || medications.getFrequency().isBlank()) {
-            medications.setFrequency("Once daily");
-        }
         medicationRepo.save(medications);
         return ResponseEntity.ok("Successfully added " + medications.getMedicationName());
     }
@@ -81,9 +78,7 @@ public class MedicationController {
         if (incoming.getScheduledTime() != null) {
             existing.setScheduledTime(incoming.getScheduledTime());
         }
-        if (incoming.getFrequency() != null) {
-            existing.setFrequency(incoming.getFrequency());
-        }
+
         if (incoming.getPatientUsername() != null) {
             existing.setPatientUsername(incoming.getPatientUsername());
         }
