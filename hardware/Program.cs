@@ -84,7 +84,8 @@ class Program
         }).Start();
         if(!fpSensor.VerifyFingerprint(ref cancel, out int fingerID))
             return;
-        DispenseTowers(nextEvent.dispenseRow);
+        if(!DispenseTower(nextEvent.dispenseRow))
+            return;
         nextEvent.dispensedTime = DateTime.UtcNow;
         nextEvent.hasDispensed = true;
     }
@@ -93,25 +94,21 @@ class Program
         if(await API.PostDispenseEventAsync(nextEvent))
             hasNextEvent = false;
     }
-    void DispenseTowers(bool[] dispenseTower)
+    bool DispenseTower(int dispenseTower)
     {
-        int length = Math.Min(dispenseTower.Length, servos.Length);
-        string towers = "";
-        for (int i = 0; i < length; i++)
+        if(dispenseTower > servos.Length)
         {
-            towers += $"{dispenseTower[i]} | ";
-            if(dispenseTower[i])
-                servos[i].SetAngle(CONFIG.SERVO_RETRACTANGLE);
+            Console.WriteLine($"{nameof(DispenseTower)} [ERROR] Received Invalid TowerID of {dispenseTower}/{servos.Length}");
+            return false;
         }
-        Console.WriteLine($"{nameof(Program)}.{nameof(DispenseTowers)}: {towers[..^3]}");
-        Thread.Sleep(1000);
-        for(int i = 0; i < length; i++)
-            if(dispenseTower[i])
-                servos[i].SetAngle(CONFIG.SERVO_LOCKEDANGLE);
-        Thread.Sleep(1000);
-        for (int i = 0; i < length; i++)
-            if(dispenseTower[i])
-                servos[i].Disable();
+        dispenseTower -= 1;
+        servos[dispenseTower].SetAngle(CONFIG.SERVO_RETRACTANGLE);
+        Thread.Sleep(500);
+        servos[dispenseTower].SetAngle(CONFIG.SERVO_LOCKEDANGLE);
+        Thread.Sleep(500);
+        servos[dispenseTower].Disable();
+        Console.WriteLine($"{nameof(DispenseTower)}: Dispensed Medicine from Tower{dispenseTower+1}");
+        return true;
     }
     static async Task Main(string[] args)
     {
