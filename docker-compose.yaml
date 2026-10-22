@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mymeds
+      POSTGRES_PASSWORD: $POSTGRES_DATABASE_PASSWORD
+      POSTGRES_DB: mymeds
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - proxy
+  # cloudflared: commented out, since its not relevant yet
+  #   container_name: cloudflared
+  #   image: cloudflare/cloudflared
+  #   restart: unless-stopped
+  #   command: tunnel run
+  #   networks:
+  #    - proxy
+  #   environment:
+  #    - TUNNEL_TOKEN_FILE=/run/secrets/tunnel_token
+  #   secrets:
+  #     - tunnel_token
+  frontend:
+    build: frontend
+    networks:
+      - proxy
+
+  backend:
+    depends_on:
+      - db
+    build: backend
+    networks:
+      - proxy
+    environment:
+          SPRING_APPLICATION_JSON: '{
+            "spring.datasource.url"  : "jdbc:postgresql://db:5432/mymeds",
+            "spring.datasource.username" : "mymeds",
+            "spring.datasource.password" : "$POSTGRES_DATABASE_PASSWORD",
+            "spring.jpa.properties.hibernate.dialect" : "org.hibernate.dialect.PostgreSQLDialect",
+            "spring.jpa.hibernate.ddl-auto" : "update"
+          }'
+volumes:
+  pgdata:
+networks:
+  proxy:
