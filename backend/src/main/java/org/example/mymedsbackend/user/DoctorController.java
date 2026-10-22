@@ -1,5 +1,9 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.user;
 
+import org.example.mymedsbackend.medication.MedicationLog;
+import org.example.mymedsbackend.medication.MedicationLogrepo;
+import org.example.mymedsbackend.medication.MedicationRepo;
+import org.example.mymedsbackend.medication.Medications;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -23,12 +27,12 @@ public class DoctorController {
 
     private static final DateTimeFormatter HM = DateTimeFormatter.ofPattern("HH:mm");
 
-    private final Userrepo userRepo;
-    private final Medicationrepo medicationRepo;
+    private final UserRepo userRepo;
+    private final MedicationRepo medicationRepo;
     private final MedicationLogrepo logRepo;
     private final DoctorPatientAssignmentrepo assignmentRepo;
 
-    public DoctorController(Userrepo userRepo, Medicationrepo medicationRepo, MedicationLogrepo logRepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public DoctorController(UserRepo userRepo, MedicationRepo medicationRepo, MedicationLogrepo logRepo, DoctorPatientAssignmentrepo assignmentRepo) {
         this.userRepo = userRepo;
         this.medicationRepo = medicationRepo;
         this.logRepo = logRepo;
@@ -37,7 +41,7 @@ public class DoctorController {
 
     @GetMapping("/me")
     public ResponseEntity<?> me(@AuthenticationPrincipal UserDetails principal) {
-        Credentials doctor = currentDoctor(principal);
+        User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -50,19 +54,19 @@ public class DoctorController {
 
     @GetMapping("/dashboard")
     public ResponseEntity<?> dashboard(@AuthenticationPrincipal UserDetails principal) {
-        Credentials doctor = currentDoctor(principal);
+        User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        List<Credentials> patients = patients(doctor.getId());
+        List<User> patients = patients(doctor.getId());
         List<MedicationLog> recentLogs = recentLogs();
         List<Map<String, Object>> activity = new ArrayList<>();
         int dosesToday = 0;
         int attentionNeeded = 0;
 
-        for (Credentials patient : patients) {
-            List<Medications> meds = medicationRepo.findByPatientusername(patient.getUsername());
+        for (User patient : patients) {
+            List<Medications> meds = medicationRepo.findByPatientUsername(patient.getUsername());
             dosesToday += meds.size();
             if ("Attention".equals(patientStatus(patient, meds, recentLogs))) {
                 attentionNeeded++;
@@ -91,14 +95,14 @@ public class DoctorController {
 
     @GetMapping("/patients")
     public ResponseEntity<?> patients(@AuthenticationPrincipal UserDetails principal) {
-        Credentials doctor = currentDoctor(principal);
+        User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         List<MedicationLog> recentLogs = recentLogs();
         List<Map<String, Object>> rows = new ArrayList<>();
-        for (Credentials patient : patients(doctor.getId())) {
-            List<Medications> meds = medicationRepo.findByPatientusername(patient.getUsername());
+        for (User patient : patients(doctor.getId())) {
+            List<Medications> meds = medicationRepo.findByPatientUsername(patient.getUsername());
             Medications next = nextDose(meds);
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", patient.getId());
@@ -118,17 +122,17 @@ public class DoctorController {
     public ResponseEntity<?> patient(
             @AuthenticationPrincipal UserDetails principal,
             @PathVariable String patientId) {
-        Credentials doctor = currentDoctor(principal);
+        User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Credentials patient = resolvePatient(patientId, doctor);
+        User patient = resolvePatient(patientId, doctor);
         if (patient == null) {
             return ResponseEntity.notFound().build();
         }
 
         List<MedicationLog> recentLogs = recentLogs();
-        List<Medications> meds = medicationRepo.findByPatientusername(patient.getUsername());
+        List<Medications> meds = medicationRepo.findByPatientUsername(patient.getUsername());
         List<Map<String, Object>> medicationRows = new ArrayList<>();
         for (Medications med : meds) {
             Map<String, Object> row = new LinkedHashMap<>();
@@ -179,11 +183,11 @@ public class DoctorController {
             @AuthenticationPrincipal UserDetails principal,
             @PathVariable String patientId,
             @PathVariable int medicationId) {
-        Credentials doctor = currentDoctor(principal);
+        User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Credentials patient = resolvePatient(patientId, doctor);
+        User patient = resolvePatient(patientId, doctor);
         Medications med = medicationFor(patient, medicationId);
         if (med == null) {
             return ResponseEntity.notFound().build();
@@ -197,11 +201,11 @@ public class DoctorController {
             @PathVariable String patientId,
             @PathVariable int medicationId,
             @RequestBody MedicationChange change) {
-        Credentials doctor = currentDoctor(principal);
+        User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Credentials patient = resolvePatient(patientId, doctor);
+        User patient = resolvePatient(patientId, doctor);
         Medications med = medicationFor(patient, medicationId);
         if (med == null) {
             return ResponseEntity.notFound().build();
@@ -231,11 +235,11 @@ public class DoctorController {
             @AuthenticationPrincipal UserDetails principal,
             @PathVariable String patientId,
             @PathVariable int medicationId) {
-        Credentials doctor = currentDoctor(principal);
+        User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Credentials patient = resolvePatient(patientId, doctor);
+        User patient = resolvePatient(patientId, doctor);
         Medications med = medicationFor(patient, medicationId);
         if (med == null) {
             return ResponseEntity.notFound().build();
@@ -246,12 +250,12 @@ public class DoctorController {
 
     @GetMapping("/medication-history")
     public ResponseEntity<?> history(@AuthenticationPrincipal UserDetails principal) {
-        Credentials doctor = currentDoctor(principal);
+        User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         java.util.Set<String> assignedUsernames = patients(doctor.getId()).stream()
-                .map(Credentials::getUsername)
+                .map(User::getUsername)
                 .collect(java.util.stream.Collectors.toSet());
         Map<Integer, Medications> medsById = new LinkedHashMap<>();
         for (Medications med : medicationRepo.findAll()) {
@@ -260,13 +264,13 @@ public class DoctorController {
 
         List<Map<String, Object>> events = new ArrayList<>();
         for (MedicationLog log : logRepo.findAllByOrderByEventTimeDesc()) {
-            if (!assignedUsernames.contains(log.getPatientusername())) {
+            if (!assignedUsernames.contains(log.getPatientUsername())) {
                 continue;
             }
             Medications med = medsById.get(log.getMedicationId());
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", log.getId());
-            row.put("patient", log.getPatientusername());
+            row.put("patient", log.getPatientUsername());
             row.put("medication", log.getMedicationName());
             row.put("time", formatTime(log.getEventTime()));
             row.put("dose", med != null && med.getDosage() != null ? med.getDosage() : "");
@@ -276,7 +280,7 @@ public class DoctorController {
         return ResponseEntity.ok(events);
     }
 
-    private Map<String, Object> medicationView(Credentials patient, Medications med) {
+    private Map<String, Object> medicationView(User patient, Medications med) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("id", med.getId());
         body.put("patientName", patient.getUsername());
@@ -287,18 +291,18 @@ public class DoctorController {
         return body;
     }
 
-    private Credentials currentDoctor(UserDetails principal) {
+    private User currentDoctor(UserDetails principal) {
         if (principal == null) {
             return null;
         }
-        Credentials doctor = userRepo.findByUsername(principal.getUsername());
+        User doctor = userRepo.findByUsername(principal.getUsername());
         return doctor != null && doctor.isActive() && hasRole(doctor, "DOCTOR") ? doctor : null;
     }
 
-    private List<Credentials> patients(int doctorId) {
-        List<Credentials> patients = new ArrayList<>();
+    private List<User> patients(int doctorId) {
+        List<User> patients = new ArrayList<>();
         for (DoctorPatientAssignment assignment : assignmentRepo.findByDoctor_IdOrderByPatient_UsernameAsc(doctorId)) {
-            Credentials patient = assignment.getPatient();
+            User patient = assignment.getPatient();
             if (patient.isActive() && hasRole(patient, "PATIENT")) {
                 patients.add(patient);
             }
@@ -306,11 +310,11 @@ public class DoctorController {
         return patients;
     }
 
-    private Credentials resolvePatient(String patientId, Credentials doctor) {
+    private User resolvePatient(String patientId, User doctor) {
         if (patientId == null || patientId.isBlank()) {
             return null;
         }
-        Credentials patient = null;
+        User patient = null;
         try {
             patient = userRepo.findById(Integer.parseInt(patientId)).orElse(null);
         } catch (NumberFormatException ignored) {
@@ -328,12 +332,12 @@ public class DoctorController {
         return patient;
     }
 
-    private Medications medicationFor(Credentials patient, int medicationId) {
+    private Medications medicationFor(User patient, int medicationId) {
         if (patient == null) {
             return null;
         }
         return medicationRepo.findById(medicationId)
-                .filter(med -> patient.getUsername().equals(med.getPatientusername()))
+                .filter(med -> patient.getUsername().equals(med.getPatientUsername()))
                 .orElse(null);
     }
 
@@ -346,14 +350,14 @@ public class DoctorController {
     private List<MedicationLog> logsFor(String username, List<MedicationLog> logs) {
         List<MedicationLog> matches = new ArrayList<>();
         for (MedicationLog log : logs) {
-            if (username.equals(log.getPatientusername())) {
+            if (username.equals(log.getPatientUsername())) {
                 matches.add(log);
             }
         }
         return matches;
     }
 
-    private boolean hasRole(Credentials user, String role) {
+    private boolean hasRole(User user, String role) {
         if (user.getRole() == null) {
             return false;
         }
@@ -392,7 +396,7 @@ public class DoctorController {
         return "Scheduled";
     }
 
-    private String patientStatus(Credentials patient, List<Medications> meds, List<MedicationLog> logs) {
+    private String patientStatus(User patient, List<Medications> meds, List<MedicationLog> logs) {
         for (Medications med : meds) {
             if ("Missed".equals(medicationStatus(med, logs, LocalDate.now()))) {
                 return "Attention";

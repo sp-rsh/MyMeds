@@ -1,5 +1,9 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.user;
 
+import org.example.mymedsbackend.medication.MedicationLog;
+import org.example.mymedsbackend.medication.MedicationLogrepo;
+import org.example.mymedsbackend.medication.MedicationRepo;
+import org.example.mymedsbackend.medication.Medications;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,10 +22,10 @@ import java.util.Map;
 @RequestMapping("/api/alerts")
 public class AlertController {
 
-    private final Medicationrepo medicationRepo;
+    private final MedicationRepo medicationRepo;
     private final MedicationLogrepo logRepo;
 
-    public AlertController(Medicationrepo medicationRepo, MedicationLogrepo logRepo) {
+    public AlertController(MedicationRepo medicationRepo, MedicationLogrepo logRepo) {
         this.medicationRepo = medicationRepo;
         this.logRepo = logRepo;
     }
@@ -31,14 +35,14 @@ public class AlertController {
             @AuthenticationPrincipal UserDetails user) {
 
         String username = user.getUsername();
-        List<Medications> medications = medicationRepo.findByPatientusername(username);
+        List<Medications> medications = medicationRepo.findByPatientUsername(username);
         List<Map<String, Object>> alerts = new ArrayList<>();
 
         LocalDate today = LocalDate.now();
         LocalTime currentTime = LocalTime.now();
 
         List<MedicationLog> logs =
-                logRepo.findByPatientusernameAndEventTypeAndEventTimeBetween(
+                logRepo.findByPatientUsernameAndEventTypeAndEventTimeBetween(
                         username,
                         "DISPENSED",
                         today.atStartOfDay(),

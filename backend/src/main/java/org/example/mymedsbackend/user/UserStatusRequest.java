@@ -1,4 +1,4 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.user;
 
 public class UserStatusRequest {
     private Boolean active;

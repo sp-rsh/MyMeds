@@ -1,14 +1,12 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.user;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity
-public class Credentials {
+@Table(name = "users")
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -16,7 +14,6 @@ public class Credentials {
     private String password;
     private String email;
     private String role;
-    private String specialization;
     private LocalDateTime lastLoginAt;
     private boolean active = true;
 
@@ -34,14 +31,6 @@ public class Credentials {
 
     public void setLastLoginAt(LocalDateTime lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
-    }
-
-    public String getSpecialization() {
-        return specialization;
-    }
-
-    public void setSpecialization(String specialization) {
-        this.specialization = specialization;
     }
 
     public String getRole() {

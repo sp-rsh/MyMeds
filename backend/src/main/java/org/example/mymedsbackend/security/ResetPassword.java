@@ -1,4 +1,4 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.security;
 
 public class ResetPassword {
     private String newPassword;

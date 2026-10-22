@@ -1,5 +1,6 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.user;
 
+import org.example.mymedsbackend.security.SecurityCredentials;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -8,11 +9,12 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class MyUserDetailsService implements UserDetailsService {
+
     @Autowired
-    private Userrepo repo;
+    private UserRepo repo;
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Credentials user = repo.findByUsername(username);
+        User user = repo.findByUsername(username);
         if(user ==null){
             throw new UsernameNotFoundException("User not found");
         }

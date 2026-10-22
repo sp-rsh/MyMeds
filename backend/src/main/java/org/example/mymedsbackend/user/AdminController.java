@@ -1,13 +1,11 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.user;
 
-import org.springframework.http.ResponseEntity;
+import org.example.mymedsbackend.security.SecurityLog;
+import org.example.mymedsbackend.security.SecurityLogrepo;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 @RestController

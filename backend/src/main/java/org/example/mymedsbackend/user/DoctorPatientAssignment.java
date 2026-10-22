@@ -1,4 +1,4 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,6 +10,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,11 +22,11 @@ public class DoctorPatientAssignment {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "doctor_id", nullable = false)
-    private Credentials doctor;
+    private User doctor;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "patient_id", nullable = false)
-    private Credentials patient;
+    private User patient;
 
     @Column(name = "assigned_at", nullable = false)
     private LocalDateTime assignedAt;
@@ -37,10 +38,10 @@ public class DoctorPatientAssignment {
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
-    public Credentials getDoctor() { return doctor; }
-    public void setDoctor(Credentials doctor) { this.doctor = doctor; }
-    public Credentials getPatient() { return patient; }
-    public void setPatient(Credentials patient) { this.patient = patient; }
+    public User getDoctor() { return doctor; }
+    public void setDoctor(User doctor) { this.doctor = doctor; }
+    public User getPatient() { return patient; }
+    public void setPatient(User patient) { this.patient = patient; }
     public LocalDateTime getAssignedAt() { return assignedAt; }
     public void setAssignedAt(LocalDateTime assignedAt) { this.assignedAt = assignedAt; }
 }

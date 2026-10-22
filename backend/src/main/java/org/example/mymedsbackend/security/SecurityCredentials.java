@@ -1,5 +1,6 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.security;
 
+import org.example.mymedsbackend.user.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,15 +10,15 @@ import java.util.List;
 import java.util.Locale;
 
 public class SecurityCredentials implements UserDetails {
-    private final Credentials credentials;
+    private final User user;
 
-    public SecurityCredentials(Credentials credentials) {
-        this.credentials = credentials;
+    public SecurityCredentials(User user) {
+        this.user = user;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String role = credentials.getRole();
+        String role = user.getRole();
         if (role == null || role.isBlank()) {
             return List.of();
         }
@@ -28,12 +29,12 @@ public class SecurityCredentials implements UserDetails {
 
     @Override
     public String getPassword() {
-        return credentials.getPassword();
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return credentials.getUsername();
+        return user.getUsername();
     }
 
     @Override
@@ -53,6 +54,6 @@ public class SecurityCredentials implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return credentials.isActive();
+        return user.isActive();
     }
 }

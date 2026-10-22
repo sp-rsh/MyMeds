@@ -1,5 +1,9 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.medication;
 
+import org.example.mymedsbackend.user.User;
+import org.example.mymedsbackend.user.DoctorPatientAssignment;
+import org.example.mymedsbackend.user.DoctorPatientAssignmentrepo;
+import org.example.mymedsbackend.user.UserRepo;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,10 +19,10 @@ import java.util.stream.Collectors;
 public class LogController {
 
     private final MedicationLogrepo repo;
-    private final Userrepo userRepo;
+    private final UserRepo userRepo;
     private final DoctorPatientAssignmentrepo assignmentRepo;
 
-    public LogController(MedicationLogrepo repo, Userrepo userRepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public LogController(MedicationLogrepo repo, UserRepo userRepo, DoctorPatientAssignmentrepo assignmentRepo) {
         this.repo = repo;
         this.userRepo = userRepo;
         this.assignmentRepo = assignmentRepo;
@@ -28,20 +32,20 @@ public class LogController {
     public ResponseEntity<List<MedicationLog>> getLogs(
             @AuthenticationPrincipal UserDetails user) {
         return ResponseEntity.ok(
-                repo.findByPatientusernameOrderByEventTimeDesc(user.getUsername())
+                repo.findByPatientUsernameOrderByEventTimeDesc(user.getUsername())
         );
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<MedicationLog>> getAllLogs(@AuthenticationPrincipal UserDetails user) {
-        Credentials account = userRepo.findByUsername(user.getUsername());
+        User account = userRepo.findByUsername(user.getUsername());
         if (account != null && "DOCTOR".equalsIgnoreCase(account.getRole().replace("ROLE_", ""))) {
             Set<String> assignedUsernames = assignmentRepo.findByDoctor_IdOrderByPatient_UsernameAsc(account.getId()).stream()
                     .map(DoctorPatientAssignment::getPatient)
-                    .map(Credentials::getUsername)
+                    .map(User::getUsername)
                     .collect(Collectors.toSet());
             return ResponseEntity.ok(repo.findAllByOrderByEventTimeDesc().stream()
-                    .filter(log -> assignedUsernames.contains(log.getPatientusername()))
+                    .filter(log -> assignedUsernames.contains(log.getPatientUsername()))
                     .toList());
         }
         return ResponseEntity.ok(repo.findAllByOrderByEventTimeDesc());

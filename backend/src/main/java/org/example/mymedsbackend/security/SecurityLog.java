@@ -1,4 +1,4 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.security;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;

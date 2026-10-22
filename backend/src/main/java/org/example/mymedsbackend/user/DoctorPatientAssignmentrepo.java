@@ -1,4 +1,4 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.user;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;

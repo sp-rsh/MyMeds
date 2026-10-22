@@ -1,5 +1,11 @@
-package org.example.mymedsbackend;
+package org.example.mymedsbackend.user;
 
+import org.example.mymedsbackend.medication.MedicationLog;
+import org.example.mymedsbackend.medication.MedicationLogrepo;
+import org.example.mymedsbackend.medication.MedicationRepo;
+import org.example.mymedsbackend.medication.Medications;
+import org.example.mymedsbackend.security.ResetPassword;
+import org.example.mymedsbackend.security.SecurityLogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,19 +26,19 @@ import java.time.LocalDateTime;
 @RequestMapping("/api")
 public class UserController {
 
-    private static final Set<String> ROLES = Set.of("ADMIN", "DOCTOR", "PATIENT");
+    private static final Set<String> ROLES = Set.of("ADMIN", "DOCTOR", "PATIENT", "DEVICE");
 
-    private final Userrepo repo;
+    private final UserRepo repo;
     private final PasswordEncoder passwordEncoder;
-    private final Medicationrepo medicationRepo;
+    private final MedicationRepo medicationRepo;
     private final MedicationLogrepo logRepo;
     private final DoctorPatientAssignmentrepo assignmentRepo;
     private final SecurityLogService securityLog;
 
     public UserController(
-            Userrepo repo,
+            UserRepo repo,
             PasswordEncoder passwordEncoder,
-            Medicationrepo medicationRepo,
+            MedicationRepo medicationRepo,
             MedicationLogrepo logRepo,
             DoctorPatientAssignmentrepo assignmentRepo,
             SecurityLogService securityLog) {
@@ -50,7 +56,7 @@ public class UserController {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Credentials user = repo.findByUsername(userDetails.getUsername());
+        User user = repo.findByUsername(userDetails.getUsername());
         if (user == null || !user.isActive()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -65,7 +71,7 @@ public class UserController {
         if (userDetails == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        Credentials user = repo.findByUsername(userDetails.getUsername());
+        User user = repo.findByUsername(userDetails.getUsername());
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
@@ -109,13 +115,13 @@ public class UserController {
 
     @GetMapping("/users/{doctorId}/patients")
     public ResponseEntity<?> getDoctorPatients(@PathVariable int doctorId) {
-        Credentials doctor = repo.findById(doctorId).orElse(null);
+        User doctor = repo.findById(doctorId).orElse(null);
         if (doctor == null || !"DOCTOR".equals(normaliseRole(doctor.getRole()))) {
             return error(HttpStatus.NOT_FOUND, "Doctor account not found.");
         }
         List<Map<String, Object>> patients = assignmentRepo.findByDoctor_IdOrderByPatient_UsernameAsc(doctorId).stream()
                 .map(assignment -> {
-                    Credentials patient = assignment.getPatient();
+                    User patient = assignment.getPatient();
                     Map<String, Object> body = new LinkedHashMap<>();
                     body.put("id", patient.getId());
                     body.put("username", patient.getUsername());
@@ -133,7 +139,7 @@ public class UserController {
     public ResponseEntity<?> replaceDoctorPatients(
             @PathVariable int doctorId,
             @RequestBody DoctorPatientAssignmentRequest request) {
-        Credentials doctor = repo.findById(doctorId).orElse(null);
+        User doctor = repo.findById(doctorId).orElse(null);
         if (doctor == null || !"DOCTOR".equals(normaliseRole(doctor.getRole()))) {
             return error(HttpStatus.NOT_FOUND, "Doctor account not found.");
         }
@@ -142,12 +148,12 @@ public class UserController {
         }
 
         Set<Integer> patientIds = new LinkedHashSet<>(request.getPatientIds());
-        List<Credentials> patients = new java.util.ArrayList<>();
+        List<User> patients = new java.util.ArrayList<>();
         for (Integer patientId : patientIds) {
             if (patientId == null) {
                 return error(HttpStatus.BAD_REQUEST, "Patient IDs must be valid account IDs.");
             }
-            Credentials patient = repo.findById(patientId).orElse(null);
+            User patient = repo.findById(patientId).orElse(null);
             if (patient == null || !"PATIENT".equals(normaliseRole(patient.getRole()))) {
                 return error(HttpStatus.BAD_REQUEST, "Every assigned account must be an existing patient.");
             }
@@ -178,13 +184,13 @@ public class UserController {
 
     @PostMapping("/users/register")
     @Transactional
-    public ResponseEntity<?> registerUser(@RequestBody Credentials credentials) {
-        String username = trimToNull(credentials.getUsername());
-        String email = trimToNull(credentials.getEmail());
-        String password = credentials.getPassword();
+    public ResponseEntity<?> registerUser(@RequestBody User user) {
+        String username = trimToNull(user.getUsername());
+        String email = trimToNull(user.getEmail());
+        String password = user.getPassword();
         String role;
         try {
-            role = normaliseRole(credentials.getRole());
+            role = normaliseRole(user.getRole());
         } catch (IllegalArgumentException ex) {
             return error(HttpStatus.BAD_REQUEST, ex.getMessage());
         }
@@ -202,14 +208,13 @@ public class UserController {
             return error(HttpStatus.CONFLICT, "That email address is already in use.");
         }
 
-        credentials.setId(0);
-        credentials.setUsername(username);
-        credentials.setEmail(email);
-        credentials.setRole(role);
-        if (!"DOCTOR".equals(role)) credentials.setSpecialization(null);
-        credentials.setPassword(passwordEncoder.encode(password));
-        credentials.setActive(true);
-        Credentials saved = repo.save(credentials);
+        user.setId(0);
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setRole(role);
+        user.setPassword(passwordEncoder.encode(password));
+        user.setActive(true);
+        User saved = repo.save(user);
         securityLog.recordAsCurrentUser("Account created", "Account", "Success", role + " account " + saved.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse(saved));
     }
@@ -220,7 +225,7 @@ public class UserController {
             @PathVariable int id,
             @RequestBody UserAdminUpdateRequest request,
             @AuthenticationPrincipal UserDetails actor) {
-        Credentials user = repo.findById(id).orElse(null);
+        User user = repo.findById(id).orElse(null);
         if (user == null) return error(HttpStatus.NOT_FOUND, "User not found.");
 
         String username = trimToNull(request.getUsername());
@@ -263,8 +268,8 @@ public class UserController {
             return error(HttpStatus.CONFLICT, "The last administrator cannot be demoted.");
         }
 
-        boolean hasPatientData = !medicationRepo.findByPatientusername(user.getUsername()).isEmpty()
-                || !logRepo.findByPatientusernameOrderByEventTimeDesc(user.getUsername()).isEmpty();
+        boolean hasPatientData = !medicationRepo.findByPatientUsername(user.getUsername()).isEmpty()
+                || !logRepo.findByPatientUsernameOrderByEventTimeDesc(user.getUsername()).isEmpty();
         if ("PATIENT".equals(normaliseRole(user.getRole())) && hasPatientData && !"PATIENT".equals(role)) {
             return error(HttpStatus.CONFLICT, "This account has medication history. Keep its role as PATIENT to preserve access to those records.");
         }
@@ -274,24 +279,19 @@ public class UserController {
             clearAssignments(user);
         }
         if (!previousUsername.equals(username)) {
-            List<Medications> medicines = medicationRepo.findByPatientusername(previousUsername);
-            medicines.forEach(medicine -> medicine.setPatientusername(username));
+            List<Medications> medicines = medicationRepo.findByPatientUsername(previousUsername);
+            medicines.forEach(medicine -> medicine.setPatientUsername(username));
             medicationRepo.saveAll(medicines);
-            List<MedicationLog> logs = logRepo.findByPatientusernameOrderByEventTimeDesc(previousUsername);
-            logs.forEach(log -> log.setPatientusername(username));
+            List<MedicationLog> logs = logRepo.findByPatientUsernameOrderByEventTimeDesc(previousUsername);
+            logs.forEach(log -> log.setPatientUsername(username));
             logRepo.saveAll(logs);
         }
 
         user.setUsername(username);
         user.setEmail(email);
         user.setRole(role);
-        if ("DOCTOR".equals(role)) {
-            if (request.getSpecialization() != null) user.setSpecialization(trimToNull(request.getSpecialization()));
-        } else {
-            user.setSpecialization(null);
-        }
         if (password != null && !password.isBlank()) user.setPassword(passwordEncoder.encode(password));
-        Credentials saved = repo.save(user);
+        User saved = repo.save(user);
         return ResponseEntity.ok(userResponse(saved));
     }
 
@@ -301,7 +301,7 @@ public class UserController {
             @PathVariable int id,
             @RequestBody UserRoleRequest request,
             @AuthenticationPrincipal UserDetails actor) {
-        Credentials user = repo.findById(id).orElse(null);
+        User user = repo.findById(id).orElse(null);
         if (user == null) return error(HttpStatus.NOT_FOUND, "User not found.");
         String role;
         try {
@@ -315,8 +315,8 @@ public class UserController {
         if (user.isActive() && "ADMIN".equals(normaliseRole(user.getRole())) && !"ADMIN".equals(role) && countActiveAdmins() <= 1) {
             return error(HttpStatus.CONFLICT, "The last administrator cannot be demoted.");
         }
-        boolean hasPatientData = !medicationRepo.findByPatientusername(user.getUsername()).isEmpty()
-                || !logRepo.findByPatientusernameOrderByEventTimeDesc(user.getUsername()).isEmpty();
+        boolean hasPatientData = !medicationRepo.findByPatientUsername(user.getUsername()).isEmpty()
+                || !logRepo.findByPatientUsernameOrderByEventTimeDesc(user.getUsername()).isEmpty();
         if ("PATIENT".equals(normaliseRole(user.getRole())) && hasPatientData && !"PATIENT".equals(role)) {
             return error(HttpStatus.CONFLICT, "This account has medication history. Keep its role as PATIENT to preserve access to those records.");
         }
@@ -324,8 +324,7 @@ public class UserController {
             clearAssignments(user);
         }
         user.setRole(role);
-        if (!"DOCTOR".equals(role)) user.setSpecialization(null);
-        Credentials saved = repo.save(user);
+        User saved = repo.save(user);
         securityLog.recordAsCurrentUser("Role updated", "Role Change", "Success", saved.getUsername() + " is now " + role);
         return ResponseEntity.ok(userResponse(saved));
     }
@@ -339,7 +338,7 @@ public class UserController {
         if (request.getActive() == null) {
             return error(HttpStatus.BAD_REQUEST, "The active field is required.");
         }
-        Credentials user = repo.findById(id).orElse(null);
+        User user = repo.findById(id).orElse(null);
         if (user == null) return error(HttpStatus.NOT_FOUND, "User not found.");
         if (actor != null && actor.getUsername().equals(user.getUsername()) && !request.getActive()) {
             return error(HttpStatus.CONFLICT, "You cannot deactivate your own account.");
@@ -348,7 +347,7 @@ public class UserController {
             return error(HttpStatus.CONFLICT, "The last administrator cannot be deactivated.");
         }
         user.setActive(request.getActive());
-        Credentials saved = repo.save(user);
+        User saved = repo.save(user);
         securityLog.recordAsCurrentUser(saved.isActive() ? "Account activated" : "Account deactivated", "Account", "Success", saved.getUsername());
         return ResponseEntity.ok(userResponse(saved));
     }
@@ -358,7 +357,7 @@ public class UserController {
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody ResetPassword request) {
         if (userDetails == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        Credentials user = repo.findByUsername(userDetails.getUsername());
+        User user = repo.findByUsername(userDetails.getUsername());
         if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect current password!");
@@ -381,10 +380,10 @@ public class UserController {
     }
 
 
-    private UserAdminResponse userResponse(Credentials user) {
+    private UserAdminResponse userResponse(User user) {
         String role = normaliseRole(user.getRole());
         int medicationCount = "PATIENT".equals(role)
-                ? medicationRepo.findByPatientusername(user.getUsername()).size() : 0;
+                ? medicationRepo.findByPatientUsername(user.getUsername()).size() : 0;
         int assignedPatientCount = "DOCTOR".equals(role)
                 ? assignmentRepo.findByDoctor_IdOrderByPatient_UsernameAsc(user.getId()).size() : 0;
         String doctor = "PATIENT".equals(role)
@@ -396,14 +395,14 @@ public class UserController {
         return UserAdminResponse.from(user, medicationCount, assignedPatientCount, doctor);
     }
 
-    private void clearAssignments(Credentials user) {
+    private void clearAssignments(User user) {
         assignmentRepo.deleteAll(assignmentRepo.findByDoctor_IdOrderByPatient_UsernameAsc(user.getId()));
         assignmentRepo.deleteAll(assignmentRepo.findByPatient_Id(user.getId()));
     }
 
     private long countActiveAdmins() {
         return repo.findAll().stream()
-                .filter(Credentials::isActive)
+                .filter(User::isActive)
                 .filter(user -> "ADMIN".equals(normaliseRole(user.getRole())))
                 .count();
     }
