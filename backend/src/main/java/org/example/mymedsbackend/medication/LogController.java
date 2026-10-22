@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/logs")
 public class LogController {
 
-    private final MedicationLogrepo repo;
+    private final MedicationLogRepo repo;
     private final UserRepo userRepo;
     private final DoctorPatientAssignmentrepo assignmentRepo;
 
-    public LogController(MedicationLogrepo repo, UserRepo userRepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public LogController(MedicationLogRepo repo, UserRepo userRepo, DoctorPatientAssignmentrepo assignmentRepo) {
         this.repo = repo;
         this.userRepo = userRepo;
         this.assignmentRepo = assignmentRepo;

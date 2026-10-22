@@ -1,7 +1,7 @@
 package org.example.mymedsbackend.user;
 
 import org.example.mymedsbackend.medication.MedicationLog;
-import org.example.mymedsbackend.medication.MedicationLogrepo;
+import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
 import org.example.mymedsbackend.medication.Medications;
 import org.springframework.http.HttpStatus;
@@ -29,10 +29,10 @@ public class DoctorController {
 
     private final UserRepo userRepo;
     private final MedicationRepo medicationRepo;
-    private final MedicationLogrepo logRepo;
+    private final MedicationLogRepo logRepo;
     private final DoctorPatientAssignmentrepo assignmentRepo;
 
-    public DoctorController(UserRepo userRepo, MedicationRepo medicationRepo, MedicationLogrepo logRepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public DoctorController(UserRepo userRepo, MedicationRepo medicationRepo, MedicationLogRepo logRepo, DoctorPatientAssignmentrepo assignmentRepo) {
         this.userRepo = userRepo;
         this.medicationRepo = medicationRepo;
         this.logRepo = logRepo;

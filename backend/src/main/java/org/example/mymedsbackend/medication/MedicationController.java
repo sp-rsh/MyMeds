@@ -21,9 +21,9 @@ public class MedicationController {
     private final DoctorPatientAssignmentrepo assignmentRepo;
 
 
-    public MedicationController(MedicationRepo medicationRepo, UserRepo drepo, DoctorPatientAssignmentrepo assignmentRepo) {
+    public MedicationController(MedicationRepo medicationRepo, UserRepo userRepo, DoctorPatientAssignmentrepo assignmentRepo) {
         this.medicationRepo = medicationRepo;
-        this.userRepo = drepo;
+        this.userRepo = userRepo;
         this.assignmentRepo = assignmentRepo;
     }
     @PostMapping
@@ -82,6 +82,11 @@ public class MedicationController {
         if (incoming.getPatientUsername() != null) {
             existing.setPatientUsername(incoming.getPatientUsername());
         }
+
+        if (incoming.getTowersToDispense() != 0) {
+            existing.setTowerToDispense(incoming.getTowersToDispense());
+        }
+
         return ResponseEntity.ok(medicationRepo.save(existing));
     }
     @GetMapping("/my")

@@ -16,7 +16,9 @@ public class Medications {
     private String patientUsername;
     private String medicationName;
     private String dosage;
+
     private LocalTime scheduledTime;
+    private int towerToDispense = 0;
 
     public int getId() {
         return id;
@@ -57,5 +59,13 @@ public class Medications {
 
     public void setScheduledTime(LocalTime scheduledTime) {
         this.scheduledTime = scheduledTime;
+    }
+
+    public int getTowersToDispense() {
+        return towerToDispense;
+    }
+
+    public void setTowerToDispense(int towerToDispense) {
+        this.towerToDispense = towerToDispense;
     }
 }

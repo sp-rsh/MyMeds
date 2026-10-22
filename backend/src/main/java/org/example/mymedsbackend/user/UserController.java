@@ -1,7 +1,7 @@
 package org.example.mymedsbackend.user;
 
 import org.example.mymedsbackend.medication.MedicationLog;
-import org.example.mymedsbackend.medication.MedicationLogrepo;
+import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
 import org.example.mymedsbackend.medication.Medications;
 import org.example.mymedsbackend.security.ResetPassword;
@@ -31,7 +31,7 @@ public class UserController {
     private final UserRepo repo;
     private final PasswordEncoder passwordEncoder;
     private final MedicationRepo medicationRepo;
-    private final MedicationLogrepo logRepo;
+    private final MedicationLogRepo logRepo;
     private final DoctorPatientAssignmentrepo assignmentRepo;
     private final SecurityLogService securityLog;
 
@@ -39,7 +39,7 @@ public class UserController {
             UserRepo repo,
             PasswordEncoder passwordEncoder,
             MedicationRepo medicationRepo,
-            MedicationLogrepo logRepo,
+            MedicationLogRepo logRepo,
             DoctorPatientAssignmentrepo assignmentRepo,
             SecurityLogService securityLog) {
         this.repo = repo;

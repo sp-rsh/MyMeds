@@ -1,7 +1,7 @@
 package org.example.mymedsbackend.user;
 
 import org.example.mymedsbackend.medication.MedicationLog;
-import org.example.mymedsbackend.medication.MedicationLogrepo;
+import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
 import org.example.mymedsbackend.medication.Medications;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +23,9 @@ import java.util.Map;
 public class AlertController {
 
     private final MedicationRepo medicationRepo;
-    private final MedicationLogrepo logRepo;
+    private final MedicationLogRepo logRepo;
 
-    public AlertController(MedicationRepo medicationRepo, MedicationLogrepo logRepo) {
+    public AlertController(MedicationRepo medicationRepo, MedicationLogRepo logRepo) {
         this.medicationRepo = medicationRepo;
         this.logRepo = logRepo;
     }
