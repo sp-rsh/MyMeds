@@ -65,7 +65,7 @@ onMounted(loadMedications)
           <tbody>
             <tr v-for="medication in medications" :key="medication.id">
               <td class="patient-name">
-                {{ medication.medicationName }}
+                {{ medication.name }}
               </td>
 
               <td>

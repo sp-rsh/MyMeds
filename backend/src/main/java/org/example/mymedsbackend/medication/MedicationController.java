@@ -29,17 +29,17 @@ public class MedicationController {
     }
 
     @PostMapping
-    public ResponseEntity<?> addMedication(@RequestBody Medication Medication, @AuthenticationPrincipal UserDetails principal) {
+    public ResponseEntity<?> addMedication(@RequestBody Medication med, @AuthenticationPrincipal UserDetails principal) {
         User doctor = currentDoctor(principal);
-        User patient = Medication.getPatientUsername() == null ? null : userRepo.findByUsername(Medication.getPatientUsername());
-
+        User patient = med.getPatient() == null ? null : userRepo.findById(med.getPatient().getId()).orElse(null);
 
         if (doctor == null || patient == null || !isPatient(patient) || !patient.isActive()
                 || !assignmentRepo.existsByDoctor_IdAndPatient_Id(doctor.getId(), patient.getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Patient is not assigned to this doctor.");
         }
-        medicationRepo.save(Medication);
-        return ResponseEntity.ok("Successfully added " + Medication.getMedicationName());
+        med.setPatient(patient);
+        medicationRepo.save(med);
+        return ResponseEntity.ok("Successfully added " + med.getName());
     }
 
     @DeleteMapping("/{id}")
@@ -49,8 +49,7 @@ public class MedicationController {
             return ResponseEntity.status(404).body("Medication not found");
         }
         User doctor = currentDoctor(principal);
-        User patient = userRepo.findByUsername(existing.getPatientUsername());
-        if (doctor == null || patient == null || !assignmentRepo.existsByDoctor_IdAndPatient_Id(doctor.getId(), patient.getId())) {
+        if (doctor == null || existing.getPatient() == null || !assignmentRepo.existsByDoctor_IdAndPatient_Id(doctor.getId(), existing.getPatient().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Patient is not assigned to this doctor.");
         }
         medicationRepo.delete(existing);
@@ -64,18 +63,19 @@ public class MedicationController {
             return ResponseEntity.status(404).body("Medication not found");
         }
         User doctor = currentDoctor(principal);
-        User existingPatient = userRepo.findByUsername(existing.getPatientUsername());
-        if (doctor == null || existingPatient == null || !assignmentRepo.existsByDoctor_IdAndPatient_Id(doctor.getId(), existingPatient.getId())) {
+        if (doctor == null || existing.getPatient() == null || !assignmentRepo.existsByDoctor_IdAndPatient_Id(doctor.getId(), existing.getPatient().getId())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Patient is not assigned to this doctor.");
         }
-        if (incoming.getPatientUsername() != null) {
-            User newPatient = userRepo.findByUsername(incoming.getPatientUsername());
-            if (newPatient == null || !isPatient(newPatient) || !assignmentRepo.existsByDoctor_IdAndPatient_Id(doctor.getId(), newPatient.getId())) {
+        if (incoming.getPatient() != null) {
+            User newPatient = userRepo.findById(incoming.getPatient().getId()).orElse(null);
+            if (newPatient == null || !isPatient(newPatient)
+                    || !assignmentRepo.existsByDoctor_IdAndPatient_Id(doctor.getId(), newPatient.getId())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Patient is not assigned to this doctor.");
             }
+            incoming.setPatient(newPatient);
         }
-        if (incoming.getMedicationName() != null) {
-            existing.setMedicationName(incoming.getMedicationName());
+        if (incoming.getName() != null) {
+            existing.setName(incoming.getName());
         }
         if (incoming.getDosage() != null) {
             existing.setDosage(incoming.getDosage());
@@ -86,15 +86,18 @@ public class MedicationController {
         if (incoming.getTowerToDispense() != 0) {
             existing.setTowerToDispense(incoming.getTowerToDispense());
         }
-        if (incoming.getPatientUsername() != null) {
-            existing.setPatientUsername(incoming.getPatientUsername());
+        if (incoming.getPatient() != null) {
+            existing.setPatient(incoming.getPatient());
         }
         return ResponseEntity.ok(medicationRepo.save(existing));
     }
 
     @GetMapping("/my")
     public ResponseEntity<List<Medication>> getMyMedication(@AuthenticationPrincipal UserDetails user) {
-        List<Medication> myMeds = medicationRepo.findByPatientUsername(user.getUsername());
+        User patient = userRepo.findByUsername(user.getUsername());
+        List<Medication> myMeds = patient == null
+                ? List.of()
+                : medicationRepo.findByPatient_Id(patient.getId());
         return ResponseEntity.ok(myMeds);
     }
 
@@ -110,7 +113,7 @@ public class MedicationController {
         }
         List<PatientMedicationsResponse> responseList = new ArrayList<>();
         for (User patient : patients) {
-            List<Medication> meds = medicationRepo.findByPatientUsername(patient.getUsername());
+            List<Medication> meds = medicationRepo.findByPatient_Id(patient.getId());
             responseList.add(new PatientMedicationsResponse(
                     patient.getUsername(),
                     patient.getEmail(),
@@ -123,7 +126,10 @@ public class MedicationController {
 
     @GetMapping("/next")
     public ResponseEntity<Medication> getNextMedicine(@AuthenticationPrincipal UserDetails user) {
-        List<Medication> myMeds = medicationRepo.findByPatientUsername(user.getUsername());
+        User patient = userRepo.findByUsername(user.getUsername());
+        List<Medication> myMeds = patient == null
+                ? List.of()
+                : medicationRepo.findByPatient_Id(patient.getId());
         Medication nextMedication = MedicationUtil.nextDose(myMeds);
 
         if (nextMedication == null) {
@@ -150,4 +156,3 @@ public class MedicationController {
         return "PATIENT".equals(role);
     }
 }
-

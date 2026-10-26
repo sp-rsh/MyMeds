@@ -49,20 +49,6 @@ function formatTime(value) {
   })
 }
 
-function statusClass(eventType) {
-  const type = String(eventType ?? '').toUpperCase()
-
-  if (type.includes('DISPENS') || type.includes('TAKEN') || type.includes('COLLECT')) {
-    return 'taken'
-  }
-
-  if (type.includes('MISS')) {
-    return 'missed'
-  }
-
-  return 'scheduled'
-}
-
 const history = ref([])
 
 const loading = ref(true)
@@ -111,19 +97,19 @@ onMounted(loadHistory)
               </td>
 
               <td class="patient-name">
-                {{ event.medicationName }}
+                {{ event.medication?.name || '—' }}
               </td>
 
               <td>
-                <span class="status-badge" :class="statusClass(event.eventType)">
+                <span class="status-badge taken">
                   <span class="status-dot"></span>
 
-                  {{ event.eventType }}
+                  Dispensed
                 </span>
               </td>
 
               <td>
-                {{ event.details || '—' }}
+                —
               </td>
             </tr>
           </tbody>

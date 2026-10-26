@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,8 +33,12 @@ public class MedicationLogController {
     @GetMapping
     public ResponseEntity<List<MedicationLog>> getLogs(
             @AuthenticationPrincipal UserDetails user) {
+        User patient = userRepo.findByUsername(user.getUsername());
+        if (patient == null) {
+            return ResponseEntity.notFound().build();
+        }
         return ResponseEntity.ok(
-                repo.findByPatientUsernameOrderByEventTimeDesc(user.getUsername())
+                repo.findByPatient_IdOrderByEventTimeDesc(patient.getId())
         );
     }
 
@@ -41,14 +46,15 @@ public class MedicationLogController {
     public ResponseEntity<List<MedicationLog>> getAllLogs(@AuthenticationPrincipal UserDetails user) {
         User account = userRepo.findByUsername(user.getUsername());
         if (account != null && "DOCTOR".equalsIgnoreCase(account.getRole().replace("ROLE_", ""))) {
-            Set<String> assignedUsernames = assignmentRepo.findByDoctor_IdOrderByPatient_UsernameAsc(account.getId()).stream()
+            Set<Integer> assignedPatientIds = assignmentRepo.findByDoctor_IdOrderByPatient_UsernameAsc(account.getId()).stream()
                     .map(DoctorPatientAssignment::getPatient)
-                    .map(User::getUsername)
+                    .map(User::getId)
                     .collect(Collectors.toSet());
             return ResponseEntity.ok(repo.findAllByOrderByEventTimeDesc().stream()
-                    .filter(log -> assignedUsernames.contains(log.getPatientUsername()))
+                    .filter(log -> log.getPatient() != null && assignedPatientIds.contains(log.getPatient().getId()))
                     .toList());
         }
         return ResponseEntity.ok(repo.findAllByOrderByEventTimeDesc());
     }
+
 }

@@ -1,9 +1,7 @@
 package org.example.mymedsbackend.medication;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import org.example.mymedsbackend.user.User;
 
 import java.time.LocalDateTime;
 
@@ -14,13 +12,15 @@ public class MedicationLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private int medicationId;
-    private String patientUsername;
-    private String medicationName;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "patient_id", nullable = false)
+    private User patient;
 
-    private String eventType;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "medication_id", nullable = false)
+    private Medication medication;
+
     private LocalDateTime eventTime;
-    private String details;
 
     public int getId() {
         return id;
@@ -30,37 +30,6 @@ public class MedicationLog {
         this.id = id;
     }
 
-    public int getMedicationId() {
-        return medicationId;
-    }
-
-    public void setMedicationId(int medicationId) {
-        this.medicationId = medicationId;
-    }
-
-    public String getPatientUsername() {
-        return patientUsername;
-    }
-
-    public void setPatientUsername(String patientUsername) {
-        this.patientUsername = patientUsername;
-    }
-
-    public String getMedicationName() {
-        return medicationName;
-    }
-
-    public void setMedicationName(String medicationName) {
-        this.medicationName = medicationName;
-    }
-
-    public String getEventType() {
-        return eventType;
-    }
-
-    public void setEventType(String eventType) {
-        this.eventType = eventType;
-    }
 
     public LocalDateTime getEventTime() {
         return eventTime;
@@ -70,11 +39,19 @@ public class MedicationLog {
         this.eventTime = eventTime;
     }
 
-    public String getDetails() {
-        return details;
+    public Medication getMedication() {
+        return medication;
     }
 
-    public void setDetails(String details) {
-        this.details = details;
+    public void setMedication(Medication medication) {
+        this.medication = medication;
+    }
+
+    public User getPatient() {
+        return patient;
+    }
+
+    public void setPatient(User patient) {
+        this.patient = patient;
     }
 }

@@ -41,8 +41,8 @@ async function addMedicationToPatient() {
 
   try {
     await addMedication({
-      patientUsername: patient.value.patientUsername,
-      medicationName: newMedication.name,
+      patient: { id: patient.value.id },
+      name: newMedication.name,
       dosage: newMedication.dosage,
       scheduledTime: newMedication.time,
       towerToDispense: newMedication.towerToDispense,
