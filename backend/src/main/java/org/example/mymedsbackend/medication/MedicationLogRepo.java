@@ -1,16 +1,15 @@
 package org.example.mymedsbackend.medication;
 
+import java.time.LocalDateTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface MedicationLogRepo extends JpaRepository<MedicationLog, Integer> {
-    List<MedicationLog> findByPatientUsernameOrderByEventTimeDesc(String patientUsername);
+    List<MedicationLog> findByPatient_IdOrderByEventTimeDesc(int patientId);
 
-    List<MedicationLog> findByPatientUsernameAndEventTypeAndEventTimeBetween(
-            String patientUsername,
-            String eventType,
+    List<MedicationLog> findByPatient_IdAndEventTimeBetweenOrderByEventTimeDesc(
+            int patientId,
             LocalDateTime start,
             LocalDateTime end
     );

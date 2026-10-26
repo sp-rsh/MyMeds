@@ -1,9 +1,7 @@
 package org.example.mymedsbackend.medication;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import org.example.mymedsbackend.user.User;
 
 import java.time.LocalTime;
 
@@ -14,8 +12,11 @@ public class Medication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String patientUsername;
-    private String medicationName;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User patient;
+
+    private String name;
     private String dosage;
 
     private LocalTime scheduledTime;
@@ -30,20 +31,12 @@ public class Medication {
         this.id = id;
     }
 
-    public String getPatientUsername() {
-        return patientUsername;
+    public String getName() {
+        return name;
     }
 
-    public void setPatientUsername(String patientUsername) {
-        this.patientUsername = patientUsername;
-    }
-
-    public String getMedicationName() {
-        return medicationName;
-    }
-
-    public void setMedicationName(String medicationName) {
-        this.medicationName = medicationName;
+    public void setName(String medicationName) {
+        this.name = medicationName;
     }
 
     public String getDosage() {
@@ -68,5 +61,13 @@ public class Medication {
 
     public void setTowerToDispense(int towerToDispense) {
         this.towerToDispense = towerToDispense;
+    }
+
+    public User getPatient() {
+        return patient;
+    }
+
+    public void setPatient(User user) {
+        this.patient = user;
     }
 }

@@ -285,8 +285,8 @@ public class UserController {
             return error(HttpStatus.CONFLICT, "The last administrator cannot be demoted.");
         }
 
-        boolean hasPatientData = !medicationRepo.findByPatientUsername(user.getUsername()).isEmpty()
-                || !logRepo.findByPatientUsernameOrderByEventTimeDesc(user.getUsername()).isEmpty();
+        boolean hasPatientData = !medicationRepo.findByPatient_Id(user.getId()).isEmpty()
+                || !logRepo.findByPatient_IdOrderByEventTimeDesc(user.getId()).isEmpty();
         if ("PATIENT".equals(normaliseRole(user.getRole())) && hasPatientData && !"PATIENT".equals(role)) {
             return error(HttpStatus.CONFLICT, "This account has medication history. Keep its role as PATIENT to preserve access to those records.");
         }
@@ -294,14 +294,6 @@ public class UserController {
         String previousUsername = user.getUsername();
         if (!normaliseRole(user.getRole()).equals(role)) {
             clearAssignments(user);
-        }
-        if (!previousUsername.equals(username)) {
-            List<Medication> medicines = medicationRepo.findByPatientUsername(previousUsername);
-            medicines.forEach(medicine -> medicine.setPatientUsername(username));
-            medicationRepo.saveAll(medicines);
-            List<MedicationLog> logs = logRepo.findByPatientUsernameOrderByEventTimeDesc(previousUsername);
-            logs.forEach(log -> log.setPatientUsername(username));
-            logRepo.saveAll(logs);
         }
 
         user.setUsername(username);
@@ -332,8 +324,8 @@ public class UserController {
         if (user.isActive() && "ADMIN".equals(normaliseRole(user.getRole())) && !"ADMIN".equals(role) && countActiveAdmins() <= 1) {
             return error(HttpStatus.CONFLICT, "The last administrator cannot be demoted.");
         }
-        boolean hasPatientData = !medicationRepo.findByPatientUsername(user.getUsername()).isEmpty()
-                || !logRepo.findByPatientUsernameOrderByEventTimeDesc(user.getUsername()).isEmpty();
+        boolean hasPatientData = !medicationRepo.findByPatient_Id(user.getId()).isEmpty()
+                || !logRepo.findByPatient_IdOrderByEventTimeDesc(user.getId()).isEmpty();
         if ("PATIENT".equals(normaliseRole(user.getRole())) && hasPatientData && !"PATIENT".equals(role)) {
             return error(HttpStatus.CONFLICT, "This account has medication history. Keep its role as PATIENT to preserve access to those records.");
         }
@@ -390,7 +382,7 @@ public class UserController {
     private UserAdminResponse userResponse(User user) {
         String role = normaliseRole(user.getRole());
         int medicationCount = "PATIENT".equals(role)
-                ? medicationRepo.findByPatientUsername(user.getUsername()).size() : 0;
+                ? medicationRepo.findByPatient_Id(user.getId()).size() : 0;
         int assignedPatientCount = "DOCTOR".equals(role)
                 ? assignmentRepo.findByDoctor_IdOrderByPatient_UsernameAsc(user.getId()).size() : 0;
         String doctor = "PATIENT".equals(role)
