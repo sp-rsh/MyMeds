@@ -4,14 +4,14 @@ import org.example.mymedsbackend.user.DoctorPatientAssignment;
 import org.example.mymedsbackend.user.DoctorPatientAssignmentRepo;
 import org.example.mymedsbackend.user.User;
 import org.example.mymedsbackend.user.UserRepo;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -23,11 +23,13 @@ public class MedicationLogController {
     private final MedicationLogRepo repo;
     private final UserRepo userRepo;
     private final DoctorPatientAssignmentRepo assignmentRepo;
+    private final MedicationRepo medicationRepo;
 
-    public MedicationLogController(MedicationLogRepo repo, UserRepo userRepo, DoctorPatientAssignmentRepo assignmentRepo) {
+    public MedicationLogController(MedicationLogRepo repo, UserRepo userRepo, DoctorPatientAssignmentRepo assignmentRepo, MedicationRepo medicationRepo) {
         this.repo = repo;
         this.userRepo = userRepo;
         this.assignmentRepo = assignmentRepo;
+        this.medicationRepo = medicationRepo;
     }
 
     @GetMapping
@@ -57,4 +59,23 @@ public class MedicationLogController {
         return ResponseEntity.ok(repo.findAllByOrderByEventTimeDesc());
     }
 
+
+    @PostMapping("/{id}")
+    public ResponseEntity<?> postMedicineLog(@PathVariable int id, @AuthenticationPrincipal UserDetails details) {
+        User account = userRepo.findByUsername(details.getUsername());
+        Medication medication = medicationRepo.findByIdAndPatient_Id(id, account.getId());
+
+        if (medication == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Medicine was not found");
+        }
+        MedicationLog log = new MedicationLog();
+
+        log.setMedication(medication);
+        log.setPatient(medication.getPatient());
+        log.setEventTime(LocalDateTime.now());
+
+        repo.save(log);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body("Logged Medication");
+    }
 }

@@ -8,4 +8,6 @@ public interface MedicationRepo extends JpaRepository<Medication, Integer> {
     List<Medication> findByPatient_Username(String username);
 
     List<Medication> findByPatient_Id(int patientId);
+
+    Medication findByIdAndPatient_Id(int medicationId, int patientId);
 }
