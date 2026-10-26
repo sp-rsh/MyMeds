@@ -63,7 +63,7 @@ public class DoctorController {
         int attentionNeeded = 0;
 
         for (User patient : patients) {
-            List<Medication> meds = medicationRepo.findByPatientUsername(patient.getUsername());
+            List<Medication> meds = medicationRepo.findByPatient_Id(patient.getId());
             dosesToday += meds.size();
             if ("Attention".equals(patientStatus(patient, meds, recentLogs))) {
                 attentionNeeded++;
@@ -72,7 +72,7 @@ public class DoctorController {
                 Map<String, Object> row = new LinkedHashMap<>();
                 row.put("id", med.getId());
                 row.put("patient", patient.getUsername());
-                row.put("medication", med.getMedicationName());
+                row.put("medication", med.getName());
                 row.put("time", formatTime(med.getScheduledTime()));
                 row.put("status", medicationStatus(med, recentLogs, LocalDate.now()));
                 activity.add(row);
@@ -99,13 +99,13 @@ public class DoctorController {
         List<MedicationLog> recentLogs = recentLogs();
         List<Map<String, Object>> rows = new ArrayList<>();
         for (User patient : patients(doctor.getId())) {
-            List<Medication> meds = medicationRepo.findByPatientUsername(patient.getUsername());
+            List<Medication> meds = medicationRepo.findByPatient_Id(patient.getId());
             Medication next = MedicationUtil.nextDose(meds);
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", patient.getId());
             row.put("name", patient.getUsername());
             row.put("patientUsername", patient.getUsername());
-            row.put("medication", next == null ? "" : next.getMedicationName());
+            row.put("medication", next == null ? "" : next.getName());
             row.put("nextDose", next == null ? "" : formatTime(next.getScheduledTime()));
             row.put("adherence", adherence(meds, recentLogs));
             row.put("status", patientStatus(patient, meds, recentLogs));
@@ -129,12 +129,12 @@ public class DoctorController {
         }
 
         List<MedicationLog> recentLogs = recentLogs();
-        List<Medication> meds = medicationRepo.findByPatientUsername(patient.getUsername());
+        List<Medication> meds = medicationRepo.findByPatient_Id(patient.getId());
         List<Map<String, Object>> medicationRows = new ArrayList<>();
         for (Medication med : meds) {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", med.getId());
-            row.put("name", med.getMedicationName());
+            row.put("name", med.getName());
             row.put("dosage", med.getDosage());
             row.put("time", formatTime(med.getScheduledTime()));
             row.put("status", medicationStatus(med, recentLogs, LocalDate.now()));
@@ -146,8 +146,7 @@ public class DoctorController {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", log.getId());
             row.put("time", formatTime(log.getEventTime()));
-            row.put("medication", log.getMedicationName());
-            row.put("description", describe(log));
+            row.put("medication", log.getMedication().getName());
             activity.add(row);
         }
         if (activity.isEmpty()) {
@@ -155,8 +154,7 @@ public class DoctorController {
                 Map<String, Object> row = new LinkedHashMap<>();
                 row.put("id", med.getId());
                 row.put("time", formatTime(med.getScheduledTime()));
-                row.put("medication", med.getMedicationName());
-                row.put("description", "Scheduled");
+                row.put("medication", med.getName());
                 activity.add(row);
             }
         }
@@ -208,7 +206,7 @@ public class DoctorController {
             return ResponseEntity.notFound().build();
         }
         if (change.getName() != null) {
-            med.setMedicationName(change.getName());
+            med.setName(change.getName());
         }
         if (change.getDosage() != null) {
             med.setDosage(change.getDosage());
@@ -253,8 +251,8 @@ public class DoctorController {
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        java.util.Set<String> assignedUsernames = patients(doctor.getId()).stream()
-                .map(User::getUsername)
+        java.util.Set<Integer> assignedPatientIds = patients(doctor.getId()).stream()
+                .map(User::getId)
                 .collect(java.util.stream.Collectors.toSet());
         Map<Integer, Medication> medsById = new LinkedHashMap<>();
         for (Medication med : medicationRepo.findAll()) {
@@ -263,17 +261,16 @@ public class DoctorController {
 
         List<Map<String, Object>> events = new ArrayList<>();
         for (MedicationLog log : logRepo.findAllByOrderByEventTimeDesc()) {
-            if (!assignedUsernames.contains(log.getPatientUsername())) {
+            if (log.getPatient() == null || !assignedPatientIds.contains(log.getPatient().getId())) {
                 continue;
             }
-            Medication med = medsById.get(log.getMedicationId());
+            Medication med = log.getMedication();
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("id", log.getId());
-            row.put("patient", log.getPatientUsername());
-            row.put("medication", log.getMedicationName());
+            row.put("patient", log.getPatient().getUsername());
+            row.put("medication", med == null ? "" : med.getName());
             row.put("time", formatTime(log.getEventTime()));
             row.put("dose", med != null && med.getDosage() != null ? med.getDosage() : "");
-            row.put("status", statusFromEvent(log.getEventType()));
             events.add(row);
         }
         return ResponseEntity.ok(events);
@@ -283,7 +280,7 @@ public class DoctorController {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("id", med.getId());
         body.put("patientName", patient.getUsername());
-        body.put("name", med.getMedicationName());
+        body.put("name", med.getName());
         body.put("dosage", med.getDosage());
         body.put("time", formatTime(med.getScheduledTime()));
         body.put("towerToDispense", med.getTowerToDispense());
@@ -336,7 +333,7 @@ public class DoctorController {
             return null;
         }
         return medicationRepo.findById(medicationId)
-                .filter(med -> patient.getUsername().equals(med.getPatientUsername()))
+                .filter(med -> patient.getUsername().equals(med.getPatient().getUsername()))
                 .orElse(null);
     }
 
@@ -349,7 +346,7 @@ public class DoctorController {
     private List<MedicationLog> logsFor(String username, List<MedicationLog> logs) {
         List<MedicationLog> matches = new ArrayList<>();
         for (MedicationLog log : logs) {
-            if (username.equals(log.getPatientUsername())) {
+            if (log.getPatient() != null && username.equals(log.getPatient().getUsername())) {
                 matches.add(log);
             }
         }
@@ -369,17 +366,15 @@ public class DoctorController {
 
     private String medicationStatus(Medication med, List<MedicationLog> logs, LocalDate day) {
         for (MedicationLog log : logs) {
-            if (log.getMedicationId() != med.getId() || log.getEventTime() == null) {
+            if (log.getMedication().getId() != med.getId() || log.getEventTime() == null) {
                 continue;
             }
             if (!log.getEventTime().toLocalDate().equals(day)) {
                 continue;
             }
-            String status = statusFromEvent(log.getEventType());
-            if ("Taken".equals(status) || "Missed".equals(status)) {
-                return status;
-            }
+            return "Taken";
         }
+
         if (med.getScheduledTime() != null
                 && day.equals(LocalDate.now())
                 && LocalTime.now().isAfter(med.getScheduledTime())) {
@@ -414,10 +409,9 @@ public class DoctorController {
                 }
                 expected++;
                 for (MedicationLog log : logs) {
-                    if (log.getMedicationId() == med.getId()
+                    if (log.getMedication().getId() == med.getId()
                             && log.getEventTime() != null
-                            && log.getEventTime().toLocalDate().equals(day)
-                            && "Taken".equals(statusFromEvent(log.getEventType()))) {
+                            && log.getEventTime().toLocalDate().equals(day)) {
                         taken++;
                         break;
                     }
@@ -431,30 +425,6 @@ public class DoctorController {
     }
 
 
-    private String statusFromEvent(String eventType) {
-        if (eventType == null) {
-            return "Scheduled";
-        }
-        String value = eventType.toUpperCase();
-        if (value.contains("DISPENS") || value.contains("TAKEN") || value.contains("COLLECT")) {
-            return "Taken";
-        }
-        if (value.contains("MISS")) {
-            return "Missed";
-        }
-        return "Scheduled";
-    }
-
-    private String describe(MedicationLog log) {
-        if (log.getDetails() != null && !log.getDetails().isBlank()) {
-            return log.getDetails();
-        }
-        return switch (statusFromEvent(log.getEventType())) {
-            case "Taken" -> "Medication taken";
-            case "Missed" -> "Scheduled medication dose has been missed";
-            default -> "Scheduled";
-        };
-    }
 
     private String formatTime(LocalTime time) {
         return time == null ? "" : time.format(HM);

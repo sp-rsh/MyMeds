@@ -133,7 +133,7 @@ onMounted(loadDashboard)
           </h3>
 
           <p>
-            {{ nextMedication ? nextMedication.medicationName : 'No more scheduled doses today' }}
+            {{ nextMedication ? nextMedication.name : 'No more scheduled doses today' }}
           </p>
         </div>
       </div>

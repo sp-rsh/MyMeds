@@ -25,10 +25,12 @@ public class AlertController {
 
     private final MedicationRepo medicationRepo;
     private final MedicationLogRepo logRepo;
+    private final UserRepo userRepo;
 
-    public AlertController(MedicationRepo medicationRepo, MedicationLogRepo logRepo) {
+    public AlertController(MedicationRepo medicationRepo, MedicationLogRepo logRepo, UserRepo userRepo) {
         this.medicationRepo = medicationRepo;
         this.logRepo = logRepo;
+        this.userRepo = userRepo;
     }
 
     @GetMapping
@@ -36,16 +38,19 @@ public class AlertController {
             @AuthenticationPrincipal UserDetails user) {
 
         String username = user.getUsername();
-        List<Medication> medications = medicationRepo.findByPatientUsername(username);
+        User patient = userRepo.findByUsername(username);
+        if (patient == null) {
+            return ResponseEntity.notFound().build();
+        }
+        List<Medication> medications = medicationRepo.findByPatient_Id(patient.getId());
         List<Map<String, Object>> alerts = new ArrayList<>();
 
         LocalDate today = LocalDate.now();
         LocalTime currentTime = LocalTime.now();
 
         List<MedicationLog> logs =
-                logRepo.findByPatientUsernameAndEventTypeAndEventTimeBetween(
-                        username,
-                        "DISPENSED",
+                logRepo.findByPatient_IdAndEventTimeBetweenOrderByEventTimeDesc(
+                        patient.getId(),
                         today.atStartOfDay(),
                         LocalDateTime.now()
                 );
@@ -60,7 +65,7 @@ public class AlertController {
             boolean dispensed = false;
 
             for (MedicationLog log : logs) {
-                if (log.getMedicationId() == medication.getId()) {
+                if (log.getMedication().getId() == medication.getId()) {
                     dispensed = true;
                     break;
                 }
@@ -69,7 +74,7 @@ public class AlertController {
             if (!dispensed) {
                 Map<String, Object> alert = new HashMap<>();
                 alert.put("medicationId", medication.getId());
-                alert.put("medicationName", medication.getMedicationName());
+                alert.put("medicationName", medication.getName());
                 alert.put("scheduledTime", scheduledTime);
                 alert.put("message", "Scheduled medication dose has been missed");
                 alerts.add(alert);
