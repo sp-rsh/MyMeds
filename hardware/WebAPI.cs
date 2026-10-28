@@ -75,20 +75,17 @@ public class WebAPI
         }
         try
         {
-            JsonObject json = new()
-            {
-                { "eventID", dEvent.eventID },
-                { "hasDispensed", dEvent.hasDispensed },
-                { "dispenseAtTime", dEvent.dispensedTime }
-            };
-            HttpResponseMessage res = await client.PostAsync(CONFIG.API_DOMAIN + CONFIG.API_POSTEVENT, new StringContent(json.ToString(), Encoding.UTF8, "application/json"));
+            HttpResponseMessage res = await client.PostAsync(CONFIG.API_DOMAIN + CONFIG.API_POSTEVENT.Replace("{id}", dEvent.eventID.ToString()), new StringContent(""));
+            if(res.IsSuccessStatusCode)
+                return true;
             Console.WriteLine($"{nameof(WebAPI)}.{nameof(PostDispenseEventAsync)}: Post returend: [{res.StatusCode}] {res.Content}");
+            return false;
         }
         catch (Exception e)
         {
             Console.WriteLine($"[ERROR] {nameof(WebAPI)}.{nameof(PostDispenseEventAsync)}: {e.Message} at {e.StackTrace}");
+            return false;
         }
-        throw new NotImplementedException($"{nameof(WebAPI)}.{nameof(PostDispenseEventAsync)} not implemented for Non-Placeholders");
     }
     DispenseEvent GetNextEvent_PLACEHOLDER()
     {
