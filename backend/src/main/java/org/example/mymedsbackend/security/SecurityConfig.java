@@ -5,10 +5,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
@@ -16,6 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -47,12 +52,24 @@ public class SecurityConfig {
     }
 
     @Bean
+    public AuthenticationManager authenticationManager(
+            AuthenticationProvider authenticationProvider) {
+        return new ProviderManager(authenticationProvider);
+    }
+
+    @Bean
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
+    }
+
+    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepo userRepo) throws Exception {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/").permitAll()
+                        .requestMatchers("/api/login", "/api/logout").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                         .requestMatchers("/api/users", "/api/users/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/medications/my").hasRole("PATIENT")
@@ -78,11 +95,8 @@ public class SecurityConfig {
                     response.sendError(HttpStatus.FORBIDDEN.value(), "Unauthorized");
                 }))
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .httpBasic(basic -> basic
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
-
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                ).logout(logout -> logout.logoutUrl("/api/logout").permitAll().deleteCookies("JSESSIONID"))
                 .addFilterBefore(new DeviceKeyAuthenticationFilter(userRepo), AbstractPreAuthenticatedProcessingFilter.class);
 
         return http.build();
