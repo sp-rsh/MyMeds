@@ -1,16 +1,24 @@
 package org.example.mymedsbackend.user;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.example.mymedsbackend.medication.Medication;
 import org.example.mymedsbackend.medication.MedicationLog;
 import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
-import org.example.mymedsbackend.security.ResetPassword;
 import org.example.mymedsbackend.security.SecurityLogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +36,7 @@ public class UserController {
     private final MedicationRepo medicationRepo;
     private final MedicationLogRepo logRepo;
     private final DoctorPatientAssignmentRepo assignmentRepo;
+
     private final SecurityLogService securityLog;
 
     public UserController(
@@ -37,6 +46,7 @@ public class UserController {
             MedicationLogRepo logRepo,
             DoctorPatientAssignmentRepo assignmentRepo,
             SecurityLogService securityLog) {
+
         this.repo = repo;
         this.passwordEncoder = passwordEncoder;
         this.medicationRepo = medicationRepo;
@@ -63,23 +73,7 @@ public class UserController {
         return ResponseEntity.status(status).body(Map.of("message", message));
     }
 
-    @GetMapping("/home")
-    @Transactional
-    public ResponseEntity<String> home(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        User user = repo.findByUsername(userDetails.getUsername());
-        if (user == null || !user.isActive()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        user.setLastLoginAt(LocalDateTime.now());
-        repo.save(user);
 
-
-        securityLog.record("Login", user.getUsername(), "Login", "Success", "Successful authentication");
-        return ResponseEntity.ok("Login successful! Welcome to MyMeds API.");
-    }
 
     @GetMapping("/users/me")
     public ResponseEntity<?> currentUser(@AuthenticationPrincipal UserDetails userDetails) {
@@ -361,6 +355,10 @@ public class UserController {
         return ResponseEntity.ok(userResponse(saved));
     }
 
+    record ResetPassword(String newPassword, String oldPassword) {
+    }
+
+
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -368,13 +366,14 @@ public class UserController {
         if (userDetails == null) return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         User user = repo.findByUsername(userDetails.getUsername());
         if (user == null) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found.");
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+
+        if (!passwordEncoder.matches(request.oldPassword(), user.getPassword())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Incorrect current password!");
         }
-        if (request.getNewPassword() == null || request.getNewPassword().length() < 8) {
+        if (request.newPassword() == null || request.newPassword().length() < 8) {
             return ResponseEntity.badRequest().body("A new password must contain at least 8 characters.");
         }
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
         repo.save(user);
         return ResponseEntity.ok("Password updated successfully!");
     }

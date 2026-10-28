@@ -32,11 +32,7 @@ public class DeviceKeyAuthenticationFilter extends AbstractPreAuthenticatedProce
             List<GrantedAuthority> authorities = new ArrayList<>(credentials.getAuthorities());
             authorities.add(new SimpleGrantedAuthority("ROLE_API")); // so we can differentiate device requests from user
 
-            return new PreAuthenticatedAuthenticationToken(
-                    credentials,
-                    null,
-                    authorities
-            );
+            return new PreAuthenticatedAuthenticationToken(credentials, null, authorities);
         });
     }
 
