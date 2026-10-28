@@ -116,9 +116,7 @@ public class DoctorController {
     }
 
     @GetMapping("/patients/{patientId}")
-    public ResponseEntity<?> patient(
-            @AuthenticationPrincipal UserDetails principal,
-            @PathVariable String patientId) {
+    public ResponseEntity<?> patient(@AuthenticationPrincipal UserDetails principal, @PathVariable String patientId) {
         User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -173,10 +171,7 @@ public class DoctorController {
     }
 
     @GetMapping("/patients/{patientId}/medications/{medicationId}")
-    public ResponseEntity<?> medication(
-            @AuthenticationPrincipal UserDetails principal,
-            @PathVariable String patientId,
-            @PathVariable int medicationId) {
+    public ResponseEntity<?> medication(@AuthenticationPrincipal UserDetails principal, @PathVariable String patientId, @PathVariable int medicationId) {
         User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -190,11 +185,7 @@ public class DoctorController {
     }
 
     @PutMapping("/patients/{patientId}/medications/{medicationId}")
-    public ResponseEntity<?> updateMedication(
-            @AuthenticationPrincipal UserDetails principal,
-            @PathVariable String patientId,
-            @PathVariable int medicationId,
-            @RequestBody MedicationChange change) {
+    public ResponseEntity<?> updateMedication(@AuthenticationPrincipal UserDetails principal, @PathVariable String patientId, @PathVariable int medicationId, @RequestBody MedicationChange change) {
 
         User doctor = currentDoctor(principal);
         if (doctor == null) {
@@ -228,10 +219,7 @@ public class DoctorController {
     }
 
     @DeleteMapping("/patients/{patientId}/medications/{medicationId}")
-    public ResponseEntity<?> deleteMedication(
-            @AuthenticationPrincipal UserDetails principal,
-            @PathVariable String patientId,
-            @PathVariable int medicationId) {
+    public ResponseEntity<?> deleteMedication(@AuthenticationPrincipal UserDetails principal, @PathVariable String patientId, @PathVariable int medicationId) {
         User doctor = currentDoctor(principal);
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -251,9 +239,7 @@ public class DoctorController {
         if (doctor == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        java.util.Set<Integer> assignedPatientIds = patients(doctor.getId()).stream()
-                .map(User::getId)
-                .collect(java.util.stream.Collectors.toSet());
+        java.util.Set<Integer> assignedPatientIds = patients(doctor.getId()).stream().map(User::getId).collect(java.util.stream.Collectors.toSet());
         Map<Integer, Medication> medsById = new LinkedHashMap<>();
         for (Medication med : medicationRepo.findAll()) {
             medsById.put(med.getId(), med);
@@ -332,15 +318,11 @@ public class DoctorController {
         if (patient == null) {
             return null;
         }
-        return medicationRepo.findById(medicationId)
-                .filter(med -> patient.getUsername().equals(med.getPatient().getUsername()))
-                .orElse(null);
+        return medicationRepo.findById(medicationId).filter(med -> patient.getUsername().equals(med.getPatient().getUsername())).orElse(null);
     }
 
     private List<MedicationLog> recentLogs() {
-        return logRepo.findByEventTimeAfterOrderByEventTimeDesc(
-                LocalDate.now().minusDays(6).atStartOfDay()
-        );
+        return logRepo.findByEventTimeAfterOrderByEventTimeDesc(LocalDate.now().minusDays(6).atStartOfDay());
     }
 
     private List<MedicationLog> logsFor(String username, List<MedicationLog> logs) {
@@ -375,9 +357,7 @@ public class DoctorController {
             return "Taken";
         }
 
-        if (med.getScheduledTime() != null
-                && day.equals(LocalDate.now())
-                && LocalTime.now().isAfter(med.getScheduledTime())) {
+        if (med.getScheduledTime() != null && day.equals(LocalDate.now()) && LocalTime.now().isAfter(med.getScheduledTime())) {
             return "Missed";
         }
         return "Scheduled";
@@ -402,16 +382,13 @@ public class DoctorController {
         for (int offset = 0; offset < 7; offset++) {
             LocalDate day = today.minusDays(offset);
             for (Medication med : meds) {
-                boolean due = day.isBefore(today)
-                        || (med.getScheduledTime() != null && !LocalTime.now().isBefore(med.getScheduledTime()));
+                boolean due = day.isBefore(today) || (med.getScheduledTime() != null && !LocalTime.now().isBefore(med.getScheduledTime()));
                 if (!due) {
                     continue;
                 }
                 expected++;
                 for (MedicationLog log : logs) {
-                    if (log.getMedication().getId() == med.getId()
-                            && log.getEventTime() != null
-                            && log.getEventTime().toLocalDate().equals(day)) {
+                    if (log.getMedication().getId() == med.getId() && log.getEventTime() != null && log.getEventTime().toLocalDate().equals(day)) {
                         taken++;
                         break;
                     }
@@ -423,7 +400,6 @@ public class DoctorController {
         }
         return (int) Math.round(taken * 100.0 / expected);
     }
-
 
 
     private String formatTime(LocalTime time) {

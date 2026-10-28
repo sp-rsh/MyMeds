@@ -1,10 +1,14 @@
 package org.example.mymedsbackend.medication;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.example.mymedsbackend.user.User;
 
 import java.time.LocalDateTime;
 
+@Setter
+@Getter
 @Entity
 public class MedicationLog {
 
@@ -21,37 +25,4 @@ public class MedicationLog {
     private Medication medication;
 
     private LocalDateTime eventTime;
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-
-    public LocalDateTime getEventTime() {
-        return eventTime;
-    }
-
-    public void setEventTime(LocalDateTime eventTime) {
-        this.eventTime = eventTime;
-    }
-
-    public Medication getMedication() {
-        return medication;
-    }
-
-    public void setMedication(Medication medication) {
-        this.medication = medication;
-    }
-
-    public User getPatient() {
-        return patient;
-    }
-
-    public void setPatient(User patient) {
-        this.patient = patient;
-    }
 }

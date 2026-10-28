@@ -865,6 +865,18 @@ tbody tr:last-child td {
   font-size: 14px;
 }
 
+.totp-qr-code {
+  display: block;
+
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 20px;
+
+  border: 8px solid #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(31, 54, 87, 0.16);
+}
+
 .authorized-text {
   margin-top: 18px;
 
