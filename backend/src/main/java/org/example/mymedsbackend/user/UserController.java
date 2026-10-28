@@ -73,24 +73,6 @@ public class UserController {
         return ResponseEntity.status(status).body(Map.of("message", message));
     }
 
-    @GetMapping("/home")
-    @Transactional
-    public ResponseEntity<String> home(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        User user = repo.findByUsername(userDetails.getUsername());
-        if (user == null || !user.isActive()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        user.setLastLoginAt(LocalDateTime.now());
-        repo.save(user);
-
-
-        securityLog.record("Login", user.getUsername(), "Login", "Success", "Successful authentication");
-        return ResponseEntity.ok("Login successful! Welcome to MyMeds API.");
-    }
-
 
 
     @GetMapping("/users/me")

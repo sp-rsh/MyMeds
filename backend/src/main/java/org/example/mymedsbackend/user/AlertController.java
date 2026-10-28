@@ -34,8 +34,7 @@ public class AlertController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> getAlerts(
-            @AuthenticationPrincipal UserDetails user) {
+    public ResponseEntity<List<Map<String, Object>>> getAlerts(@AuthenticationPrincipal UserDetails user) {
 
         String username = user.getUsername();
         User patient = userRepo.findByUsername(username);
@@ -48,12 +47,7 @@ public class AlertController {
         LocalDate today = LocalDate.now();
         LocalTime currentTime = LocalTime.now();
 
-        List<MedicationLog> logs =
-                logRepo.findByPatient_IdAndEventTimeBetweenOrderByEventTimeDesc(
-                        patient.getId(),
-                        today.atStartOfDay(),
-                        LocalDateTime.now()
-                );
+        List<MedicationLog> logs = logRepo.findByPatient_IdAndEventTimeBetweenOrderByEventTimeDesc(patient.getId(), today.atStartOfDay(), LocalDateTime.now());
 
         for (Medication medication : medications) {
             LocalTime scheduledTime = medication.getScheduledTime();
