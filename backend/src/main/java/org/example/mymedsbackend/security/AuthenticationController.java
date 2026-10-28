@@ -79,7 +79,11 @@ public class AuthenticationController {
 
             securityLog.record("Login", user.getUsername(), "Login", "Success", "Successful authentication");
 
-            return ResponseEntity.ok(Map.of("authenticated", true, "totpRequired", false));
+            return ResponseEntity.ok(Map.of(
+                    "authenticated", true,
+                    "totpRequired", false,
+                    "totpSetupRequired", !user.isTotpActive()
+            ));
 
 
         } catch (org.springframework.security.core.AuthenticationException ex) {

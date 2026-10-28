@@ -71,12 +71,11 @@ export async function login(username, password) {
       body: JSON.stringify({ username, password }),
     })
 
-    if (body.totpRequired) {
+    if (body.totpRequired || body.totpSetupRequired) {
       return body
     }
 
-    currentUser = await getCurrentUser()
-    return currentUser
+    return getCurrentUser()
   } catch (error) {
     if (error.status === 401) {
       error.message = 'Invalid username or password.'
@@ -84,6 +83,29 @@ export async function login(username, password) {
 
     throw error
   }
+}
+
+export async function loginWithTotp(code) {
+  await request('/login/totp', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  })
+
+  currentUser = await getCurrentUser()
+  return currentUser
+}
+
+export async function setupTotp() {
+  return request('/totp/setup', {
+    method: 'POST',
+  })
+}
+
+export async function verifyTotpSetup(code) {
+  return request('/totp/verify-setup', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  })
 }
 
 export async function logout() {
