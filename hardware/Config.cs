@@ -7,7 +7,7 @@ public class Config
 {
     public string API_DOMAIN {get; private set;} = "http://localhost";
     public string API_GETEVENT {get; private set;} = "/api/medications/next";
-    public string API_POSTEVENT {get;private set;} = "PLACEHOLDER";
+    public string API_POSTEVENT {get;private set;} = "/api/logs/{id}";
     public string API_TOKEN { get; private set; } = "defaultToken";
     public string FINGERPRINT_PORT  {get; private set;} = "/dev/ttyAMA2";
     public int[] SERVO_PINS {get;private set;} = [14];
