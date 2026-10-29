@@ -46,17 +46,17 @@ class Program
                 hasNextEvent = false;
             return;
         }
-        if(nextEvent.targetTime.Add(nextEvent.targetTimeBuffer).CompareTo(DateTime.UtcNow) < 0)
+        if(nextEvent.targetTime.Add(nextEvent.targetTimeBuffer).CompareTo(DateTime.Now) < 0)
         {
             await NoDispenseWithinTime();
             return;
         }
-        if(nextEvent.targetTime.CompareTo(DateTime.UtcNow) < 0)
+        if(nextEvent.targetTime.CompareTo(DateTime.Now) < 0)
         {
             AwaitDispense();
             return;
         }
-        if(DateTime.UtcNow.Subtract(lastServerUpdate).TotalSeconds > 10)
+        if(DateTime.Now.Subtract(lastServerUpdate).TotalSeconds > 10)
             await GetNextEvent();
     }
     async Task GetNextEvent()
@@ -68,7 +68,7 @@ class Program
         if(res == null)
             return;
         nextEvent = (DispenseEvent)res;
-        lastServerUpdate = DateTime.UtcNow;
+        lastServerUpdate = DateTime.Now;
     }
     void AwaitDispense()
     {
@@ -77,7 +77,7 @@ class Program
         {
             fpSensor.LED = !fpSensor.LED;
             Thread.Sleep(500);
-            if(nextEvent.targetTime.Add(nextEvent.targetTimeBuffer).CompareTo(DateTime.UtcNow) < 0)
+            if(nextEvent.targetTime.Add(nextEvent.targetTimeBuffer).CompareTo(DateTime.Now) < 0)
                 return;
         }
         bool cancel = false;
@@ -89,7 +89,7 @@ class Program
             return;
         if(!DispenseTower(nextEvent.dispenseRow))
             return;
-        nextEvent.dispensedTime = DateTime.UtcNow;
+        nextEvent.dispensedTime = DateTime.Now;
         nextEvent.hasDispensed = true;
     }
     async Task NoDispenseWithinTime()
