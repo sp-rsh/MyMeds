@@ -50,6 +50,15 @@ services:
       - "127.0.0.1:8081:8080"   # dashboard, localhost only
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-
+  hardware:
+    build:
+      context: ./hardware
+      dockerfile: Dockerfile
+    image: hardware:latest
+    container_name: hardware
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - ./config.xml:/config.xml
 volumes:
   pgdata: null

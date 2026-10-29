@@ -11,7 +11,7 @@ class Program
     DateTime lastServerUpdate;
     Program()
     {
-        CONFIG = new("~/mymedz/config.xml");
+        CONFIG = new("/config.xml");
         API = new(CONFIG);
         fpSensor = new(CONFIG.FINGERPRINT_PORT);
         servos = new Servo[CONFIG.SERVO_PINS.Length];
