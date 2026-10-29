@@ -63,7 +63,7 @@ class Program
     {
         DispenseEvent? res = await API.GetNextDispenseEvent();
         hasNextEvent = res != null;
-        if(res != null && res?.eventID != nextEvent.eventID && res?.targetTime != nextEvent.targetTime)
+        if(res != null && res?.eventID != nextEvent.eventID && res?.targetTime != nextEvent.targetTime )
             Console.WriteLine($"{nameof(GetNextEvent)} received new Event at {nextEvent.targetTime} for Tower{nextEvent.dispenseRow}");
         if(res == null)
             return;
