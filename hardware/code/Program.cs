@@ -56,13 +56,15 @@ class Program
             AwaitDispense();
             return;
         }
-        if(DateTime.UtcNow.Subtract(lastServerUpdate).Minutes > 0)
+        if(DateTime.UtcNow.Subtract(lastServerUpdate).TotalSeconds > 10)
             await GetNextEvent();
     }
     async Task GetNextEvent()
     {
         DispenseEvent? res = await API.GetNextDispenseEvent();
         hasNextEvent = res != null;
+        if(res != null && res?.eventID != nextEvent.eventID && res?.targetTime != nextEvent.targetTime)
+            Console.WriteLine($"{nameof(GetNextEvent)} received new Event at {nextEvent.targetTime} for Tower{nextEvent.dispenseRow}");
         if(res == null)
             return;
         nextEvent = (DispenseEvent)res;
@@ -70,6 +72,7 @@ class Program
     }
     void AwaitDispense()
     {
+        Console.WriteLine($"{nameof(AwaitDispense)} Waiting for FP...");
         while(!fpSensor.IsFingerDetected())
         {
             fpSensor.LED = !fpSensor.LED;
@@ -91,6 +94,7 @@ class Program
     }
     async Task NoDispenseWithinTime()
     {
+        Console.WriteLine($"[WARN] {nameof(NoDispenseWithinTime)} Failed Dispensing within timeslot");
         if(await API.PostDispenseEventAsync(nextEvent))
             hasNextEvent = false;
     }
