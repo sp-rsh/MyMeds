@@ -3,13 +3,11 @@ WORKDIR /App
 
 # Copy everything
 COPY ./code ./
-# Restore as distinct layers
-RUN dotnet restore
 # Build and publish a release
 RUN dotnet publish -c Release -r linux-arm64 -o out
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/runtime:10.0 as runtime
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
 WORKDIR /App
 COPY --from=build /App/out ./
 ENTRYPOINT ["./CSP_Hardware"]

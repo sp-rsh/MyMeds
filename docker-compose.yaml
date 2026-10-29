@@ -59,6 +59,6 @@ services:
     privileged: true
     restart: unless-stopped
     volumes:
-      - ./config.xml:/config.xml
+      - ./config.xml:/config.xml:rw
 volumes:
   pgdata: null
