@@ -8,14 +8,15 @@ RUN dotnet publish -c Release -r linux-arm64 -o out
 
 # Build runtime image
 FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
+# Add Libgpiod
+RUN apt-get update \
+	&& apt-get install -y --install-recommends curl \
+	&& curl -SL --output setup-libgpiod.sh https://raw.githubusercontent.com/devdotnetorg/docker-libgpiod/HEAD/setup-libgpiod.sh \
+	&& chmod +x setup-libgpiod.sh \
+	&& ./setup-libgpiod.sh --type binary --version 1.6.4 --canselect no \
+	&& rm setup-libgpiod.sh \
+	&& apt-get -y --purge remove curl unzip
+
 WORKDIR /App
 COPY --from=build /App/out ./
-# Add Libgpiod
-RUN apk update \
-	&& export FILENAME_BIN=libgpiod-bin-1.6.4-alpine-3.19-aarch64 \
-	&& apk add --no-cache wget unzip \
-	&& wget -O libgpiod-bin.zip "https://raw.githubusercontent.com/devdotnetorg/docker-libgpiod/dev/out/${FILENAME_BIN}.zip" \
-	&& unzip -o libgpiod-bin.zip -d /usr/ \
-	&& rm libgpiod-bin.zip \
-	&& apk del wget unzip
 ENTRYPOINT ["./CSP_Hardware"]
