@@ -63,8 +63,8 @@ public class WebAPI
         catch (Exception e)
         {
             Console.WriteLine($"[ERROR] {nameof(WebAPI)}.{nameof(GetNextDispenseEvent)}: {e.Message} at {e.StackTrace}");
+            return null;
         }
-        throw new NotImplementedException($"{nameof(WebAPI)}.{nameof(GetNextDispenseEvent)} not implemented for Non-Placeholders");
     }
     public async Task<bool> PostDispenseEventAsync(DispenseEvent dEvent)
     {
