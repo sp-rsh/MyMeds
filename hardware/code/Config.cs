@@ -25,7 +25,7 @@ public class Config
     {
         XDocument config = XDocument.Load(path);
         XElement? api = config.Root?.Element("API");
-        API_TOKEN = Environment.GetEnvironmentVariable("Token")??API_TOKEN;
+        API_TOKEN = Environment.GetEnvironmentVariable("API_TOKEN")??API_TOKEN;
         if(api != null)
         {
             API_DOMAIN = api.Element("Domain")?.Value??API_DOMAIN;

@@ -58,5 +58,7 @@ services:
     container_name: hardware
     privileged: true
     restart: unless-stopped
+    environment:
+      API_TOKEN: $API_TOKEN
 volumes:
   pgdata: null
