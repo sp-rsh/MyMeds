@@ -54,6 +54,8 @@ services:
     build:
       context: ./hardware
       dockerfile: Dockerfile
+    depends_on:
+      - backend
     image: hardware:latest
     container_name: hardware
     privileged: true

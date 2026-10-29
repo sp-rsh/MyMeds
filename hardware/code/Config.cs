@@ -5,7 +5,7 @@ namespace CSP_Hardware;
 
 public class Config
 {
-    public string API_DOMAIN {get; private set;} = "http://localhost";
+    public string API_DOMAIN {get; private set;} = "http://backend";
     public string API_GETEVENT {get; private set;} = "/api/medications/next";
     public string API_POSTEVENT {get;private set;} = "/api/logs/{id}";
     public string API_TOKEN { get; private set; } = "defaultToken";

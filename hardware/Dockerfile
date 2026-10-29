@@ -7,7 +7,7 @@ COPY ./code ./
 RUN dotnet publish -c Release -r linux-arm64 -o out
 
 # Build runtime image
-FROM mcr.microsoft.com/dotnet/runtime:10.0-noble AS runtime
+FROM mcr.microsoft.com/dotnet/runtime:10.0 AS runtime
 # Add Libgpiod
 RUN apt-get update \
 	&& apt-get install -y --install-recommends curl sudo \
