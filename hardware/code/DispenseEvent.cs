@@ -8,4 +8,5 @@ public struct DispenseEvent
     public TimeSpan targetTimeBuffer;
     public DateTime? dispensedTime;
     public int dispenseRow;
+    public readonly bool IsEqualsExcDispensed(DispenseEvent other) => eventID == other.eventID && targetTime == other.targetTime && dispenseRow == other.dispenseRow;
 }

@@ -44,11 +44,14 @@ public class WebAPI
             string[] timeComponents = time.GetValue<string>().Split(':');
             int[] timeInts = new int[3];
             for (int i = 0; i < timeComponents.Length; i++)
-                if(!int.TryParse(timeComponents[i], out timeInts[i]))
+            {
+                if(!int.TryParse(timeComponents[i], out int res))
                 {
                     Console.WriteLine($"{nameof(WebAPI)}.{nameof(GetNextDispenseEvent)} Invalid Time compontent \"{timeComponents[i]}\" should be integer");
                     return null;
                 }
+                timeInts[i] = res;
+            }
             TimeSpan timeOnly = new TimeOnly(timeInts[0], timeInts[1], timeInts[2]).ToTimeSpan();
             dEvent.targetTime = DateTime.Now.Date.Add(timeOnly);
             dEvent.targetTimeBuffer = new(1, 0, 0);
