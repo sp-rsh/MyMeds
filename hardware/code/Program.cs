@@ -19,10 +19,9 @@ class Program
         {
             servos[i] = new(CONFIG.SERVO_PINS[i]);
             servos[i].SetAngle(CONFIG.SERVO_LOCKEDANGLE);
-        }
-        Thread.Sleep(1000);
-        for (int i = 0; i < servos.Length; i++)
+            Thread.Sleep(1000);
             servos[i].Disable();
+        }
     }
     public async Task Start()
     {
@@ -62,13 +61,14 @@ class Program
     async Task GetNextEvent()
     {
         DispenseEvent? res = await API.GetNextDispenseEvent();
-        hasNextEvent = res != null;
-        if(res != null && res?.eventID != nextEvent.eventID && res?.targetTime != nextEvent.targetTime )
-            Console.WriteLine($"{nameof(GetNextEvent)} received new Event at {nextEvent.targetTime} for Tower{nextEvent.dispenseRow}");
         if(res == null)
             return;
-        nextEvent = (DispenseEvent)res;
         lastServerUpdate = DateTime.Now;
+        if(res?.IsEqualsExcDispensed(nextEvent)??false)
+            return;
+        nextEvent = res.Value;
+        hasNextEvent = true;
+        Console.WriteLine($"{nameof(GetNextEvent)} received new Event at {nextEvent.targetTime} for Tower{nextEvent.dispenseRow}");
     }
     void AwaitDispense()
     {

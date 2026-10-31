@@ -12,6 +12,8 @@ services:
 
   frontend:
     build: frontend
+    environment:
+      TZ: "Europe/Berlin"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
@@ -24,6 +26,7 @@ services:
       - db
     build: backend
     environment:
+      TZ: "Europe/Berlin"
       SPRING_APPLICATION_JSON: >-
         { "spring.datasource.url"  : "jdbc:postgresql://db:5432/mymeds",
         "spring.datasource.username" : "mymeds", "spring.datasource.password" :
@@ -60,69 +63,6 @@ services:
     restart: unless-stopped
     environment:
       API_TOKEN: $API_TOKEN
-volumes:
-  pgdata: null
-services:
-  db:
-    image: 'postgres:16'
-    container_name: postgres_db
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: mymeds
-      POSTGRES_PASSWORD: $POSTGRES_DATABASE_PASSWORD
-      POSTGRES_DB: mymeds
-    volumes:
-      - 'pgdata:/var/lib/postgresql/data'
-
-  frontend:
-    build: frontend
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.frontend.entrypoints=web"
-      - "traefik.http.routers.frontend.priority=1"
-      - "traefik.http.services.frontend.loadbalancer.server.port=80"
-
-  backend:
-    depends_on:
-      - db
-    build: backend
-    environment:
-      SPRING_APPLICATION_JSON: >-
-        { "spring.datasource.url"  : "jdbc:postgresql://db:5432/mymeds",
-        "spring.datasource.username" : "mymeds", "spring.datasource.password" :
-        "$POSTGRES_DATABASE_PASSWORD", "spring.jpa.properties.hibernate.dialect"
-        : "org.hibernate.dialect.PostgreSQLDialect",
-        "spring.jpa.hibernate.ddl-auto" : "update" }
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=PathPrefix(`/api`)"
-      - "traefik.http.routers.backend.entrypoints=web"
-      - "traefik.http.routers.backend.priority=10"
-      - "traefik.http.services.backend.loadbalancer.server.port=8080"
-
-  traefik:
-    image: traefik:v3.7
-    restart: unless-stopped
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-    ports:
-      - "80:80"
-      - "127.0.0.1:8081:8080"   # dashboard, localhost only
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-  hardware:
-    build: hardware
-    depends_on:
-      - backend
-    image: hardware:latest
-    container_name: hardware
-    privileged: true
-    restart: unless-stopped
-    environment:
-      API_TOKEN: $API_TOKEN
+      TZ: "Europe/Berlin"
 volumes:
   pgdata: null

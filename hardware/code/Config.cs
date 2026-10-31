@@ -10,7 +10,7 @@ public class Config
     public string API_POSTEVENT {get;private set;} = "/api/logs/{id}";
     public string API_TOKEN { get; private set; } = "defaultToken";
     public string FINGERPRINT_PORT  {get; private set;} = "/dev/ttyAMA2";
-    public int[] SERVO_PINS {get;private set;} = [14];
+    public int[] SERVO_PINS {get;private set;} = [14, 18, 15];
     public int SERVO_LOCKEDANGLE {get; private set;} = 0;
     public int SERVO_RETRACTANGLE {get;private set;} = 140;
     public Config(string path)
