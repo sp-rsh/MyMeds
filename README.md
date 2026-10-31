@@ -3,6 +3,7 @@
 ## Environment variables:
 ```env
 POSTGRES_DATABASE_PASSWORD=[Random Password]
+API_TOKEN=[Users API Token (found in Profile Settings)]
 ```
 
 
