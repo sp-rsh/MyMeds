@@ -12,6 +12,8 @@ services:
 
   frontend:
     build: frontend
+    environment:
+      TZ: "Europe/Berlin"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
@@ -24,6 +26,7 @@ services:
       - db
     build: backend
     environment:
+      TZ: "Europe/Berlin"
       SPRING_APPLICATION_JSON: >-
         { "spring.datasource.url"  : "jdbc:postgresql://db:5432/mymeds",
         "spring.datasource.username" : "mymeds", "spring.datasource.password" :
