@@ -19,10 +19,9 @@ class Program
         {
             servos[i] = new(CONFIG.SERVO_PINS[i]);
             servos[i].SetAngle(CONFIG.SERVO_LOCKEDANGLE);
-        }
-        Thread.Sleep(1000);
-        for (int i = 0; i < servos.Length; i++)
+            Thread.Sleep(1000);
             servos[i].Disable();
+        }
     }
     public async Task Start()
     {
@@ -51,7 +50,6 @@ class Program
             await NoDispenseWithinTime();
             return;
         }
-        Console.WriteLine($"Current: {DateTime.Now} Target: {nextEvent.targetTime} HasReached: {nextEvent.targetTime.CompareTo(DateTime.Now) < 0}");
         if(nextEvent.targetTime.CompareTo(DateTime.Now) < 0)
         {
             AwaitDispense();

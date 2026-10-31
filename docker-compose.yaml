@@ -60,5 +60,6 @@ services:
     restart: unless-stopped
     environment:
       API_TOKEN: $API_TOKEN
+      TZ: "Europe/Berlin"
 volumes:
   pgdata: null
