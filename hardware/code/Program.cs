@@ -11,7 +11,7 @@ class Program
     DateTime lastServerUpdate;
     Program()
     {
-        CONFIG = new("~/mymedz/config.xml");
+        CONFIG = new("~/config.xml");
         API = new(CONFIG);
         fpSensor = new(CONFIG.FINGERPRINT_PORT);
         servos = new Servo[CONFIG.SERVO_PINS.Length];
@@ -46,35 +46,38 @@ class Program
                 hasNextEvent = false;
             return;
         }
-        if(nextEvent.targetTime.Add(nextEvent.targetTimeBuffer).CompareTo(DateTime.UtcNow) < 0)
+        if(nextEvent.targetTime.Add(nextEvent.targetTimeBuffer).CompareTo(DateTime.Now) < 0)
         {
             await NoDispenseWithinTime();
             return;
         }
-        if(nextEvent.targetTime.CompareTo(DateTime.UtcNow) < 0)
+        if(nextEvent.targetTime.CompareTo(DateTime.Now) < 0)
         {
             AwaitDispense();
             return;
         }
-        if(DateTime.UtcNow.Subtract(lastServerUpdate).Minutes > 0)
+        if(DateTime.Now.Subtract(lastServerUpdate).TotalSeconds > 10)
             await GetNextEvent();
     }
     async Task GetNextEvent()
     {
         DispenseEvent? res = await API.GetNextDispenseEvent();
         hasNextEvent = res != null;
+        if(res != null && res?.eventID != nextEvent.eventID && res?.targetTime != nextEvent.targetTime )
+            Console.WriteLine($"{nameof(GetNextEvent)} received new Event at {nextEvent.targetTime} for Tower{nextEvent.dispenseRow}");
         if(res == null)
             return;
         nextEvent = (DispenseEvent)res;
-        lastServerUpdate = DateTime.UtcNow;
+        lastServerUpdate = DateTime.Now;
     }
     void AwaitDispense()
     {
+        Console.WriteLine($"{nameof(AwaitDispense)} Waiting for FP...");
         while(!fpSensor.IsFingerDetected())
         {
             fpSensor.LED = !fpSensor.LED;
             Thread.Sleep(500);
-            if(nextEvent.targetTime.Add(nextEvent.targetTimeBuffer).CompareTo(DateTime.UtcNow) < 0)
+            if(nextEvent.targetTime.Add(nextEvent.targetTimeBuffer).CompareTo(DateTime.Now) < 0)
                 return;
         }
         bool cancel = false;
@@ -86,11 +89,12 @@ class Program
             return;
         if(!DispenseTower(nextEvent.dispenseRow))
             return;
-        nextEvent.dispensedTime = DateTime.UtcNow;
+        nextEvent.dispensedTime = DateTime.Now;
         nextEvent.hasDispensed = true;
     }
     async Task NoDispenseWithinTime()
     {
+        Console.WriteLine($"[WARN] {nameof(NoDispenseWithinTime)} Failed Dispensing within timeslot");
         if(await API.PostDispenseEventAsync(nextEvent))
             hasNextEvent = false;
     }

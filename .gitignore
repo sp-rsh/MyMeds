@@ -1,6 +1,6 @@
 .env
-/hardware/obj/*
-/hardware/bin/*
-/hardwareTests/bin/*
-/hardwareTests/obj/*
-/hardwareTests/TestResults/*
+/hardware/code/obj/*
+/hardware/code/bin/*
+/hardware/tests/bin/*
+/hardware/tests/obj/*
+/hardware/tests/TestResults/*
