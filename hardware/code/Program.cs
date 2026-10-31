@@ -51,6 +51,7 @@ class Program
             await NoDispenseWithinTime();
             return;
         }
+        Console.WriteLine($"Current: {DateTime.Now} Target: {nextEvent.targetTime} HasReached: {nextEvent.targetTime.CompareTo(DateTime.Now) < 0}");
         if(nextEvent.targetTime.CompareTo(DateTime.Now) < 0)
         {
             AwaitDispense();
