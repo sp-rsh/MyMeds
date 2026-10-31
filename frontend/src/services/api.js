@@ -44,6 +44,11 @@ async function request(url, options = {}) {
   })
 
   if (!response.ok) {
+    if (response.status ===  403) {
+      window.location = "/login";
+      return null;
+    }
+
     const fallbackMessage = `Request failed: ${response.status}`
     let body = null
 

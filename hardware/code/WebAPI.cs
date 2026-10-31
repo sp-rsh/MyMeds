@@ -50,7 +50,7 @@ public class WebAPI
                     return null;
                 }
             TimeSpan timeOnly = new TimeOnly(timeInts[0], timeInts[1], timeInts[2]).ToTimeSpan();
-            dEvent.targetTime = DateTime.UtcNow.Date.Add(timeOnly);
+            dEvent.targetTime = DateTime.Now.Date.Add(timeOnly);
             dEvent.targetTimeBuffer = new(1, 0, 0);
             if(!json.TryGetPropertyValue("towerToDispense", out JsonNode? tower) || tower == null || tower.GetValueKind() != System.Text.Json.JsonValueKind.Number)
             {
@@ -94,7 +94,7 @@ public class WebAPI
         {
             eventID = -1,
             hasDispensed = false,
-            targetTime = DateTime.UtcNow.AddSeconds(30),
+            targetTime = DateTime.Now.AddSeconds(30),
             targetTimeBuffer = new(0,0,30),
             dispenseRow = 1
         };

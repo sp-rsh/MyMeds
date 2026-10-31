@@ -5,7 +5,7 @@ namespace CSP_Hardware;
 
 public class Config
 {
-    public string API_DOMAIN {get; private set;} = "http://localhost";
+    public string API_DOMAIN {get; private set;} = "http://traefik";
     public string API_GETEVENT {get; private set;} = "/api/medications/next";
     public string API_POSTEVENT {get;private set;} = "/api/logs/{id}";
     public string API_TOKEN { get; private set; } = "defaultToken";
@@ -25,12 +25,12 @@ public class Config
     {
         XDocument config = XDocument.Load(path);
         XElement? api = config.Root?.Element("API");
+        API_TOKEN = Environment.GetEnvironmentVariable("API_TOKEN")??API_TOKEN;
         if(api != null)
         {
             API_DOMAIN = api.Element("Domain")?.Value??API_DOMAIN;
             API_GETEVENT = api.Element("getEvent")?.Value??API_GETEVENT;
             API_POSTEVENT = api.Element("postEvent")?.Value??API_POSTEVENT;
-            API_TOKEN = api.Element("Token")?.Value??API_TOKEN;
             if(!API_DOMAIN.EndsWith('/'))
                 API_DOMAIN += '/';
         }
@@ -49,8 +49,7 @@ public class Config
         config.Root?.Add(new XElement("API",
             new XElement("Domain", API_DOMAIN),
             new XElement("getEvent", API_GETEVENT),
-            new XElement("postEvent", API_POSTEVENT),
-            new XElement("Token", API_TOKEN)
+            new XElement("postEvent", API_POSTEVENT)
         ));
         config.Root?.Add(new XElement("Fingerprint_Port", FINGERPRINT_PORT));
         config.Root?.Add(new XElement("Servos",
