@@ -1,5 +1,6 @@
 package org.example.mymedsbackend.user;
 
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.mymedsbackend.medication.Medication;
@@ -220,6 +221,7 @@ public class DoctorController {
         return ResponseEntity.ok(medicationView(patient, med));
     }
 
+    @Transactional
     @DeleteMapping("/patients/{patientId}/medications/{medicationId}")
     public ResponseEntity<?> deleteMedication(@AuthenticationPrincipal UserDetails principal, @PathVariable String patientId, @PathVariable int medicationId) {
         User doctor = currentDoctor(principal);
