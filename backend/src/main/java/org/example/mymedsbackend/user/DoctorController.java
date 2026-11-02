@@ -1,5 +1,7 @@
 package org.example.mymedsbackend.user;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.example.mymedsbackend.medication.Medication;
 import org.example.mymedsbackend.medication.MedicationLog;
 import org.example.mymedsbackend.medication.MedicationLogRepo;
@@ -65,7 +67,7 @@ public class DoctorController {
         for (User patient : patients) {
             List<Medication> meds = medicationRepo.findByPatient_Id(patient.getId());
             dosesToday += meds.size();
-            if ("Attention".equals(patientStatus(patient, meds, recentLogs))) {
+            if ("Attention".equals(patientStatus(meds, recentLogs))) {
                 attentionNeeded++;
             }
             for (Medication med : meds) {
@@ -108,7 +110,7 @@ public class DoctorController {
             row.put("medication", next == null ? "" : next.getName());
             row.put("nextDose", next == null ? "" : formatTime(next.getScheduledTime()));
             row.put("adherence", adherence(meds, recentLogs));
-            row.put("status", patientStatus(patient, meds, recentLogs));
+            row.put("status", patientStatus(meds, recentLogs));
             rows.add(row);
         }
         rows.sort(Comparator.comparing(row -> String.valueOf(row.get("name"))));
@@ -163,7 +165,7 @@ public class DoctorController {
         body.put("patientUsername", patient.getUsername());
         body.put("username", patient.getUsername());
         body.put("doctorName", doctor.getUsername());
-        body.put("status", patientStatus(patient, meds, recentLogs));
+        body.put("status", patientStatus(meds, recentLogs));
         body.put("adherence", adherence(meds, recentLogs));
         body.put("medications", medicationRows);
         body.put("activity", activity);
@@ -229,6 +231,8 @@ public class DoctorController {
         if (med == null) {
             return ResponseEntity.notFound().build();
         }
+        logRepo.deleteMedicationLogByMedication(med);
+
         medicationRepo.delete(med);
         return ResponseEntity.ok("Medication removed successfully.");
     }
@@ -240,10 +244,6 @@ public class DoctorController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
         java.util.Set<Integer> assignedPatientIds = patients(doctor.getId()).stream().map(User::getId).collect(java.util.stream.Collectors.toSet());
-        Map<Integer, Medication> medsById = new LinkedHashMap<>();
-        for (Medication med : medicationRepo.findAll()) {
-            medsById.put(med.getId(), med);
-        }
 
         List<Map<String, Object>> events = new ArrayList<>();
         for (MedicationLog log : logRepo.findAllByOrderByEventTimeDesc()) {
@@ -300,7 +300,6 @@ public class DoctorController {
         try {
             patient = userRepo.findById(Integer.parseInt(patientId)).orElse(null);
         } catch (NumberFormatException ignored) {
-            patient = null;
         }
         if (patient == null) {
             patient = userRepo.findByUsername(patientId);
@@ -363,7 +362,7 @@ public class DoctorController {
         return "Scheduled";
     }
 
-    private String patientStatus(User patient, List<Medication> meds, List<MedicationLog> logs) {
+    private String patientStatus(List<Medication> meds, List<MedicationLog> logs) {
         for (Medication med : meds) {
             if ("Missed".equals(medicationStatus(med, logs, LocalDate.now()))) {
                 return "Attention";
@@ -418,42 +417,12 @@ public class DoctorController {
         }
     }
 
+    @Setter
+    @Getter
     public static class MedicationChange {
         private String name;
         private String dosage;
         private String time;
         private int towerToDispense = 0;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getDosage() {
-            return dosage;
-        }
-
-        public void setDosage(String dosage) {
-            this.dosage = dosage;
-        }
-
-        public String getTime() {
-            return time;
-        }
-
-        public void setTime(String time) {
-            this.time = time;
-        }
-
-        public int getTowerToDispense() {
-            return towerToDispense;
-        }
-
-        public void setTowerToDispense(int towerToDispense) {
-            this.towerToDispense = towerToDispense;
-        }
     }
 }

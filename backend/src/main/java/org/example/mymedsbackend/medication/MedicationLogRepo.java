@@ -18,4 +18,7 @@ public interface MedicationLogRepo extends JpaRepository<MedicationLog, Integer>
 
     List<MedicationLog> findByEventTimeAfterOrderByEventTimeDesc(LocalDateTime localDateTime);
 
+
+    void deleteMedicationLogByMedication(Medication medication);
+
 }
