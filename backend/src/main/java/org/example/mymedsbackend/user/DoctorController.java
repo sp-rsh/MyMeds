@@ -1,5 +1,6 @@
 package org.example.mymedsbackend.user;
 
+import jakarta.transaction.Transactional;
 import lombok.Getter;
 import lombok.Setter;
 import org.example.mymedsbackend.medication.Medication;
@@ -136,6 +137,7 @@ public class DoctorController {
             row.put("id", med.getId());
             row.put("name", med.getName());
             row.put("dosage", med.getDosage());
+            row.put("towerToDispense", med.getTowerToDispense());
             row.put("time", formatTime(med.getScheduledTime()));
             row.put("status", medicationStatus(med, recentLogs, LocalDate.now()));
             medicationRows.add(row);
@@ -154,6 +156,7 @@ public class DoctorController {
                 Map<String, Object> row = new LinkedHashMap<>();
                 row.put("id", med.getId());
                 row.put("time", formatTime(med.getScheduledTime()));
+                row.put("towerToDispense", med.getTowerToDispense());
                 row.put("medication", med.getName());
                 activity.add(row);
             }
@@ -220,6 +223,7 @@ public class DoctorController {
         return ResponseEntity.ok(medicationView(patient, med));
     }
 
+    @Transactional
     @DeleteMapping("/patients/{patientId}/medications/{medicationId}")
     public ResponseEntity<?> deleteMedication(@AuthenticationPrincipal UserDetails principal, @PathVariable String patientId, @PathVariable int medicationId) {
         User doctor = currentDoctor(principal);
