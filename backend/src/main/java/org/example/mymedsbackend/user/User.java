@@ -22,4 +22,5 @@ public class User {
     private String totpSecret;
 
     private String deviceKey; // this is what our hardware uses to link to the user, UUID is secure
+    private String discordID;
 }
