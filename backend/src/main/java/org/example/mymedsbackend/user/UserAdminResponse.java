@@ -13,7 +13,8 @@ public record UserAdminResponse(
         int medications,
         int assignedPatients,
         LocalDateTime lastLoginAt,
-        String doctor
+        String doctor,
+        String discordId
 ) {
     public static UserAdminResponse from(User user, int medicationCount, int assignedPatientCount, String doctor) {
         return new UserAdminResponse(
@@ -27,7 +28,8 @@ public record UserAdminResponse(
                 medicationCount,
                 assignedPatientCount,
                 user.getLastLoginAt(),
-                doctor
+                doctor,
+                user.getDiscordID()
         );
     }
 }

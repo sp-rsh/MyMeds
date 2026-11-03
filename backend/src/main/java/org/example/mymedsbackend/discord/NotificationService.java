@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalTime;
-import java.util.concurrent.ExecutionException;
 
 @AllArgsConstructor
 @Service

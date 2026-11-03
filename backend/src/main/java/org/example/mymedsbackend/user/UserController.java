@@ -1,28 +1,16 @@
 package org.example.mymedsbackend.user;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.example.mymedsbackend.medication.Medication;
-import org.example.mymedsbackend.medication.MedicationLog;
 import org.example.mymedsbackend.medication.MedicationLogRepo;
 import org.example.mymedsbackend.medication.MedicationRepo;
 import org.example.mymedsbackend.security.SecurityLogService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.*;
 
 @RestController
@@ -72,7 +60,6 @@ public class UserController {
     private static ResponseEntity<Map<String, String>> error(HttpStatus status, String message) {
         return ResponseEntity.status(status).body(Map.of("message", message));
     }
-
 
 
     @GetMapping("/users/me")
@@ -206,6 +193,14 @@ public class UserController {
             return error(HttpStatus.BAD_REQUEST, ex.getMessage());
         }
 
+        String discordID;
+        try {
+            discordID = normaliseDiscordId(user.getDiscordID());
+        } catch (IllegalArgumentException ex) {
+            return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+
+
         if (username == null || email == null || password == null || password.length() < 8) {
             return error(HttpStatus.BAD_REQUEST, "Username, email, and a password of at least 8 characters are required.");
         }
@@ -225,6 +220,8 @@ public class UserController {
         user.setPassword(passwordEncoder.encode(password));
         user.setDeviceKey(username + "_" + UUID.randomUUID().toString().replace("-", ""));
         user.setActive(true);
+        user.setDiscordID(discordID);
+
         User saved = repo.save(user);
         securityLog.recordAsCurrentUser("Account created", "Account", "Success", role + " account " + saved.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse(saved));
@@ -257,6 +254,14 @@ public class UserController {
         if (password != null && !password.isBlank() && password.length() < 8) {
             return error(HttpStatus.BAD_REQUEST, "A new password must contain at least 8 characters.");
         }
+
+        String discordID;
+        try {
+            discordID = normaliseDiscordId(request.getDiscordID());
+        } catch (IllegalArgumentException ex) {
+            return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+
         boolean usernameUsedByAnotherAccount = repo.findAll().stream()
                 .anyMatch(other -> other.getId() != id && other.getUsername() != null
                         && other.getUsername().equalsIgnoreCase(username));
@@ -291,8 +296,10 @@ public class UserController {
         }
 
         user.setUsername(username);
+        user.setDiscordID(discordID);
         user.setEmail(email);
         user.setRole(role);
+
         if (password != null && !password.isBlank()) user.setPassword(passwordEncoder.encode(password));
         User saved = repo.save(user);
         return ResponseEntity.ok(userResponse(saved));
@@ -403,5 +410,21 @@ public class UserController {
                 .filter(User::isActive)
                 .filter(user -> "ADMIN".equals(normaliseRole(user.getRole())))
                 .count();
+    }
+
+    private static String normaliseDiscordId(String value) {
+        String discordId = trimToNull(value);
+
+        if (discordId == null) {
+            return null;
+        }
+
+        if (!discordId.matches("\\d{17,20}")) {
+            throw new IllegalArgumentException(
+                    "Discord ID must contain between 17 and 20 digits."
+            );
+        }
+
+        return discordId;
     }
 }

@@ -30,6 +30,7 @@ function openAddUser() {
   form.email = ''
   form.password = ''
   form.role = 'PATIENT'
+  form.discordID = ''
 
   formError.value = ''
   showForm.value = true
@@ -42,6 +43,7 @@ function openEditUser(user) {
   form.email = user.email || ''
   form.password = ''
   form.role = user.role || 'PATIENT'
+  form.discordID = user.discordID
 
   formError.value = ''
   showForm.value = true
@@ -82,6 +84,7 @@ async function saveUser() {
         username: form.username.trim(),
         email: form.email.trim(),
         role: form.role,
+        discordID: form.discordID.trim(),
       }
 
       if (form.password) {
@@ -95,6 +98,7 @@ async function saveUser() {
         email: form.email.trim(),
         password: form.password,
         role: form.role,
+        discordID: form.discordID.trim(),
       })
     }
 
@@ -155,6 +159,7 @@ const form = reactive({
   email: '',
   password: '',
   role: 'PATIENT',
+  discordID: '',
 })
 
 const filteredUsers = computed(() => {
@@ -281,6 +286,20 @@ onMounted(loadUsers)
 
               <option value="ADMIN">Admin</option>
             </select>
+          </div>
+
+          <div class="form-group">
+            <label for="discordID">Discord ID</label>
+
+            <input
+              id="discordID"
+              v-model="form.discordID"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]{17,20}"
+              maxlength="20"
+              placeholder=" e.g. 123456789012345678"
+            />
           </div>
 
           <div class="form-group">
