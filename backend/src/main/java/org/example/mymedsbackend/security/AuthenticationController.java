@@ -35,16 +35,10 @@ public class AuthenticationController {
     private final SecurityContextRepository securityContextRepository;
     private final TotpService totpService;
 
-
-    public record LoginRequest(String username, String password) {
-    }
-
-
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse httpResponse) {
 
         if (request.username() == null || request.username().isBlank() || request.password() == null || request.password().isBlank()) {
-
             return ResponseEntity.badRequest().body("Username and password are required.");
         }
 
@@ -58,11 +52,10 @@ public class AuthenticationController {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
             }
 
-
             HttpSession session = httpRequest.getSession(true);
             httpRequest.changeSessionId();
 
-            if (user.isTotpActive()) {
+            if (user.isTotpActive() && !System.getenv("ENV").equals("DEV")) {
                 session.setAttribute("totp_user", user.getUsername()); // make sure the 2fa token actually belongs to our guy
 
                 return ResponseEntity.ok(Map.of("authenticated", false, "totpRequired", true));
@@ -79,19 +72,12 @@ public class AuthenticationController {
 
             securityLog.record("Login", user.getUsername(), "Login", "Success", "Successful authentication");
 
-            return ResponseEntity.ok(Map.of(
-                    "authenticated", true,
-                    "totpRequired", false,
-                    "totpSetupRequired", !user.isTotpActive()
-            ));
+            return ResponseEntity.ok(Map.of("authenticated", true, "totpRequired", false, "totpSetupRequired", !user.isTotpActive()));
 
 
         } catch (org.springframework.security.core.AuthenticationException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password.");
         }
-    }
-
-    public record TotpLoginRequest(String code) {
     }
 
     @PostMapping("/login/totp")
@@ -143,11 +129,8 @@ public class AuthenticationController {
         return ResponseEntity.ok(Map.of("authenticated", true, "totpRequired", false));
     }
 
-
     @PostMapping("/totp/setup")
-    public ResponseEntity<?> setup(
-            @AuthenticationPrincipal UserDetails principal,
-            HttpSession session) {
+    public ResponseEntity<?> setup(@AuthenticationPrincipal UserDetails principal, HttpSession session) {
 
         User user = userRepo.findByUsername(principal.getUsername());
 
@@ -156,29 +139,19 @@ public class AuthenticationController {
         }
 
         if (user.isTotpActive()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("It's already on bro");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("It's already on bro");
         }
 
         String secret = totpService.generateSecret();
         session.setAttribute("totp_secret", secret); // keep it session only for now :0
 
-        String otpAuthUri = totpService.createOtpAuthUri(
-                user.getUsername(),
-                secret
-        );
+        String otpAuthUri = totpService.createOtpAuthUri(user.getUsername(), secret);
 
-        return ResponseEntity.ok(Map.of(
-                "secret", secret,
-                "otpauthUri", otpAuthUri
-        ));
+        return ResponseEntity.ok(Map.of("secret", secret, "otpauthUri", otpAuthUri));
     }
 
     @PostMapping("/totp/verify-setup")
-    public ResponseEntity<?> verifySetup(
-            @AuthenticationPrincipal UserDetails principal,
-            @RequestBody VerifyTotpRequest request,
-            HttpSession session) {
+    public ResponseEntity<?> verifySetup(@AuthenticationPrincipal UserDetails principal, @RequestBody VerifyTotpRequest request, HttpSession session) {
 
         User user = userRepo.findByUsername(principal.getUsername());
 
@@ -187,34 +160,23 @@ public class AuthenticationController {
         }
 
         if (user.isTotpActive()) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body("Is already on bro");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Is already on bro");
         }
 
         String pendingSecret = (String) session.getAttribute("totp_secret");
 
         if (pendingSecret == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(Map.of(
-                            "message",
-                            "Start TOTP setup before verifying a code."
-                    ));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", "Start TOTP setup before verifying a code."));
         }
 
-        if (request.code() == null
-                || !request.code().matches("\\d{6}")) {
-            return ResponseEntity.badRequest()
-                    .body(Map.of(
-                            "message",
-                            "TOTP code must contain six digits."
-                    ));
+        if (request.code() == null || !request.code().matches("\\d{6}")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "TOTP code must contain six digits."));
         }
 
         int code = Integer.parseInt(request.code());
 
         if (!totpService.isValid(pendingSecret, code)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Incorrect code");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Incorrect code");
         }
 
         user.setTotpSecret(pendingSecret);
@@ -223,9 +185,13 @@ public class AuthenticationController {
 
         session.removeAttribute("totp_secret");
 
-        return ResponseEntity.ok(Map.of(
-                "totpEnabled", true
-        ));
+        return ResponseEntity.ok(Map.of("totpEnabled", true));
+    }
+
+    public record LoginRequest(String username, String password) {
+    }
+
+    public record TotpLoginRequest(String code) {
     }
 
     public record VerifyTotpRequest(String code) {

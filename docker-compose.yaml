@@ -27,6 +27,7 @@ services:
     build: backend
     environment:
       TZ: "Europe/Berlin"
+      ENV: $ENV
       SPRING_APPLICATION_JSON: >-
         { "spring.datasource.url"  : "jdbc:postgresql://db:5432/mymeds",
         "spring.datasource.username" : "mymeds", "spring.datasource.password" :

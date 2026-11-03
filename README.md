@@ -4,6 +4,7 @@
 ```env
 POSTGRES_DATABASE_PASSWORD=[Random Password]
 API_TOKEN=[Users API Token (found in Profile Settings)]
+ENV=[Set to "DEV" to disable 2fa]
 ```
 
 
