@@ -10,17 +10,18 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.util.Optional;
 
 @AllArgsConstructor
 @Service
 public class NotificationService {
 
     private final MedicationRepo medicationRepo;
-    private final JDA jda;
+    private final Optional<JDA> jda;
 
     @Scheduled(fixedDelay = 60_000) // every 60 seconds
     public void notifyUpcomingMedications() {
-        if (jda == null) return;
+        if (jda.isEmpty()) return;
 
         LocalTime now = LocalTime.now();
 
@@ -40,9 +41,10 @@ public class NotificationService {
                 continue;
             }
 
-            jda.retrieveUserById(patient.getDiscordID()).submit().thenCompose(user -> user.openPrivateChannel().submit())
+            jda.get().retrieveUserById(patient.getDiscordID()).submit().thenCompose(user -> user.openPrivateChannel().submit())
                     .thenCompose(channel -> channel
-                            .sendMessage("💊 It is time to take " + medication.getName())
+                            .sendMessage("💊 It is time to take " + medication.getName() + "\n" +
+                                    "It is scheduled daily at: `" + medication.getScheduledTime()+ "`.")
                             .submit())
 
                     .exceptionally(error -> {

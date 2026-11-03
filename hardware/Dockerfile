@@ -17,7 +17,6 @@ RUN apt-get update \
 	&& rm setup-libgpiod.sh \
 	&& apt-get -y --purge remove curl unzip
 
-
 WORKDIR /App
 COPY --from=build /App/out ./
 ENTRYPOINT ["./CSP_Hardware"]

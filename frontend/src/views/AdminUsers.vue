@@ -43,7 +43,7 @@ function openEditUser(user) {
   form.email = user.email || ''
   form.password = ''
   form.role = user.role || 'PATIENT'
-  form.discordID = user.discordID
+  form.discordID = user.discordId
 
   formError.value = ''
   showForm.value = true
