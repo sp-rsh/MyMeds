@@ -15,6 +15,8 @@ public record UserAdminResponse(
         LocalDateTime lastLoginAt,
         String doctor
 ) {
+
+
     public static UserAdminResponse from(User user, int medicationCount, int assignedPatientCount, String doctor) {
         return new UserAdminResponse(
                 user.getId(),
