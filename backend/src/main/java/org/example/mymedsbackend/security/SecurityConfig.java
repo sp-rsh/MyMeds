@@ -62,13 +62,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepo userRepo) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserRepo userRepo) {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/").permitAll()
-                        .requestMatchers("/api/login","/api/login/totp", "/api/logout").permitAll()
+                        .requestMatchers("/api/login", "/api/login/totp", "/api/logout").permitAll()
                         .requestMatchers("/api/totp/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                         .requestMatchers("/api/users", "/api/users/**").hasRole("ADMIN")
@@ -85,7 +85,7 @@ public class SecurityConfig {
 
                         .anyRequest().authenticated()
                 )
-                .exceptionHandling(ex -> ex.accessDeniedHandler((request, response, denied) -> {
+                .exceptionHandling(ex -> ex.accessDeniedHandler((request, response, _) -> {
                     securityLog.recordAsCurrentUser(
                             "Unauthorized access attempt",
                             "Access",
