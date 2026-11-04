@@ -11,4 +11,6 @@ public class UserAdminUpdateRequest {
     private String role;
     private String password;
 
+    private String discordID;
+
 }

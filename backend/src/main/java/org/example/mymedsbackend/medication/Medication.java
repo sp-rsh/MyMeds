@@ -25,5 +25,4 @@ public class Medication {
 
     private LocalTime scheduledTime;
     private int towerToDispense = 0;
-
 }

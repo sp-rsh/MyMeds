@@ -27,6 +27,7 @@ services:
     build: backend
     environment:
       TZ: "Europe/Berlin"
+      DISCORD_TOKEN: $DISCORD_TOKEN
       ENV: $ENV
       SPRING_APPLICATION_JSON: >-
         { "spring.datasource.url"  : "jdbc:postgresql://db:5432/mymeds",

@@ -193,6 +193,14 @@ public class UserController {
             return error(HttpStatus.BAD_REQUEST, ex.getMessage());
         }
 
+        String discordID;
+        try {
+            discordID = normaliseDiscordId(user.getDiscordID());
+        } catch (IllegalArgumentException ex) {
+            return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+
+
         if (username == null || email == null || password == null || password.length() < 8) {
             return error(HttpStatus.BAD_REQUEST, "Username, email, and a password of at least 8 characters are required.");
         }
@@ -212,6 +220,8 @@ public class UserController {
         user.setPassword(passwordEncoder.encode(password));
         user.setDeviceKey(username + "_" + UUID.randomUUID().toString().replace("-", ""));
         user.setActive(true);
+        user.setDiscordID(discordID);
+
         User saved = repo.save(user);
         securityLog.recordAsCurrentUser("Account created", "Account", "Success", role + " account " + saved.getUsername());
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponse(saved));
@@ -244,6 +254,14 @@ public class UserController {
         if (password != null && !password.isBlank() && password.length() < 8) {
             return error(HttpStatus.BAD_REQUEST, "A new password must contain at least 8 characters.");
         }
+
+        String discordID;
+        try {
+            discordID = normaliseDiscordId(request.getDiscordID());
+        } catch (IllegalArgumentException ex) {
+            return error(HttpStatus.BAD_REQUEST, ex.getMessage());
+        }
+
         boolean usernameUsedByAnotherAccount = repo.findAll().stream()
                 .anyMatch(other -> other.getId() != id && other.getUsername() != null
                         && other.getUsername().equalsIgnoreCase(username));
@@ -277,8 +295,10 @@ public class UserController {
         }
 
         user.setUsername(username);
+        user.setDiscordID(discordID);
         user.setEmail(email);
         user.setRole(role);
+
         if (password != null && !password.isBlank()) user.setPassword(passwordEncoder.encode(password));
         User saved = repo.save(user);
         return ResponseEntity.ok(userResponse(saved));
@@ -387,6 +407,22 @@ public class UserController {
                 .count();
     }
 
+    private static String normaliseDiscordId(String value) {
+        String discordId = trimToNull(value);
+
+        if (discordId == null) {
+            return null;
+        }
+
+        if (!discordId.matches("\\d{17,20}")) {
+            throw new IllegalArgumentException(
+                    "Discord ID must contain between 17 and 20 digits."
+            );
+        }
+
+        return discordId;
+    }
+    
     public record ResetPassword(String newPassword, String oldPassword) {
     }
 }

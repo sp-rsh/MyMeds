@@ -13,7 +13,8 @@ public record UserAdminResponse(
         int medications,
         int assignedPatients,
         LocalDateTime lastLoginAt,
-        String doctor
+        String doctor,
+        String discordId
 ) {
 
 
@@ -29,7 +30,8 @@ public record UserAdminResponse(
                 medicationCount,
                 assignedPatientCount,
                 user.getLastLoginAt(),
-                doctor
+                doctor,
+                user.getDiscordID()
         );
     }
 }
