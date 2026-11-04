@@ -16,6 +16,8 @@ public record UserAdminResponse(
         String doctor,
         String discordId
 ) {
+
+
     public static UserAdminResponse from(User user, int medicationCount, int assignedPatientCount, String doctor) {
         return new UserAdminResponse(
                 user.getId(),

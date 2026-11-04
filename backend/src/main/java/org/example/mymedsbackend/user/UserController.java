@@ -290,7 +290,6 @@ public class UserController {
             return error(HttpStatus.CONFLICT, "This account has medication history. Keep its role as PATIENT to preserve access to those records.");
         }
 
-        String previousUsername = user.getUsername();
         if (!normaliseRole(user.getRole()).equals(role)) {
             clearAssignments(user);
         }
@@ -362,10 +361,6 @@ public class UserController {
         return ResponseEntity.ok(userResponse(saved));
     }
 
-    record ResetPassword(String newPassword, String oldPassword) {
-    }
-
-
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(
             @AuthenticationPrincipal UserDetails userDetails,
@@ -426,5 +421,8 @@ public class UserController {
         }
 
         return discordId;
+    }
+    
+    public record ResetPassword(String newPassword, String oldPassword) {
     }
 }
