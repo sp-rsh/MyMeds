@@ -1,0 +1,8 @@
+.env
+/hardware/code/obj/*
+/hardware/code/bin/*
+/hardware/tests/bin/*
+/hardware/tests/obj/*
+/hardware/tests/TestResults/*
+
+.idea
